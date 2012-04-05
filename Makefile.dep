@@ -9,7 +9,7 @@
 
 # Linux i386 (default)
 # HOST = -DHOST_i386 -DHOST_LINUX
-#CPP=gcc
+# CPP=gcc
 
 # Linux x86_64
 HOST = -DHOST_x86_64 -DHOST_LINUX
