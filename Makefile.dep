@@ -8,12 +8,12 @@
 # Also, you need to edit the Makefile in the bin subdirectory.
 
 # Linux i386 (default)
- HOST = -DHOST_i386 -DHOST_LINUX
-CPP=gcc
+# HOST = -DHOST_i386 -DHOST_LINUX
+#CPP=gcc
 
 # Linux x86_64
-#HOST = -DHOST_x86_64 -DHOST_LINUX
-#CPP=gcc
+HOST = -DHOST_x86_64 -DHOST_LINUX
+CPP=gcc
 
 # SUN SPARC, Sun 4.xx (not supported, just to show how to declare a
 # big-endian processor)
