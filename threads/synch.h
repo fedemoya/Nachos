@@ -90,6 +90,7 @@ class Lock {
     // a�adir aqu� otros campos que sean necesarios
     Semaphore *s;
     int state;
+    Thread* lockOwnerThread;
 };
 
 //  La siguiente clase define una "variable condici�n". Una variable condici�n
@@ -176,5 +177,41 @@ class Condition {
 };
 
 */
+
+typedef int Port;
+typedef enum SlotCreator{
+	sender,
+	receiver,
+};
+
+typedef struct{
+	Port port;
+	Condition* condition;
+	int message;
+	int* messageBuf;
+	SlotCreator creator;
+} Slot;
+
+/* */
+class Messages {
+  public:
+  // Constructor: inicia el cerrojo como libre
+  Messages(const char* debugName);
+
+  ~Messages();          // destructor
+  const char* getName() { return name; }	// para depuraci�n
+
+  Port getNextPortNumber();
+  void Send(Port puerto, int mensaje);
+  void Receive(Port puerto, int* mensaje);
+
+  private:
+    const char* name;				// para depuraci�n
+    // a�adir aqu� otros campos que sean necesarios
+    Lock* lock;
+    Port portNumber;
+    List <Slot> queue;
+};
+
 
 #endif // SYNCH_H
