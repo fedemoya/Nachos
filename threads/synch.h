@@ -145,6 +145,9 @@ class Condition {
 
   private:
     const char* name;
+    Lock* cerrojo;
+    List<Thread*> *queue;
+
     // aqu� se a�aden otros campos que sean necesarios
 };
 

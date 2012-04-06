@@ -123,10 +123,42 @@ void Lock::Release() {
 	state = 1;
 }
 
-Condition::Condition(const char* debugName, Lock* conditionLock) { }
-Condition::~Condition() { }
-void Condition::Wait() { ASSERT(false); }
-void Condition::Signal() { }
-void Condition::Broadcast() { }
+Condition::Condition(const char* debugName, Lock* conditionLock) {
+	cerrojo = conditionLock;
+	name = debugName;
+	queue = new List<Thread*>;
+}
+
+Condition::~Condition() {
+	//nada, no estamos consumiendo memoria
+}
+void Condition::Wait() { ASSERT(false);
+	cerrojo->Acquire();
+	queue->Append(currentThread);		// so go to sleep
+	currentThread->Sleep();
+	cerrojo->Release();
+
+}
+
+void Condition::Signal() {
+	Thread *thread;
+	cerrojo->Acquire();
+	thread = queue->Remove();
+	if (thread != NULL)	   // make thread ready, consuming the V immediately
+		scheduler->ReadyToRun(thread);
+	cerrojo->Release();
+}
+
+void Condition::Broadcast() {
+	Thread *thread;
+	cerrojo->Acquire();
+	thread = queue->Remove();
+	while(thread!=NULL){
+		scheduler->ReadyToRun(thread);
+		thread = queue->Remove();
+	}
+	cerrojo->Release();
+
+}
 
 
