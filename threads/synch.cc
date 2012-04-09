@@ -103,25 +103,15 @@ Semaphore::V()
 Lock::Lock(const char* debugName) {
 	name = debugName;
 	s = new Semaphore(debugName, 1);
-	state = 1;
 }
 Lock::~Lock() {
 	delete s;
 }
 void Lock::Acquire() {
-	while(true){
-		s->P();
-		if(state == 1){
-			state = 0;
-			s->V();
-			lockOwnerThread = currentThread;
-			break;
-		}
-		s->V();
-	}
+	s->P();
 }
 void Lock::Release() {
-	state = 1;
+	s->V();
 }
 bool Lock::isHeldByCurrentThread()
 {
@@ -129,41 +119,34 @@ bool Lock::isHeldByCurrentThread()
 }
 
 Condition::Condition(const char* debugName, Lock* conditionLock) {
-	cerrojo = conditionLock;
+	lock = conditionLock;
 	name = debugName;
-	queue = new List<Thread*>;
+	Semaphore s = new Semaphore(debugName, 0);
+	sleepingProcsCounter = 0;
 }
 
 Condition::~Condition() {
 	//nada, no estamos consumiendo memoria
 }
-void Condition::Wait() { ASSERT(false);
-	cerrojo->Acquire();
-	queue->Append(currentThread);		// so go to sleep
-	currentThread->Sleep();
-	cerrojo->Release();
 
+void Condition::Wait() {
+	lock->Release();
+	sleepingProcsCounter++;
+	s->P();
 }
 
 void Condition::Signal() {
-	Thread *thread;
-	cerrojo->Acquire();
-	thread = queue->Remove();
-	if (thread != NULL)	   // make thread ready, consuming the V immediately
-		scheduler->ReadyToRun(thread);
-	cerrojo->Release();
+	if(sleepingProcsCounter > 0){
+		s->V();
+		sleepingProcsCounter--;
+	}
 }
 
 void Condition::Broadcast() {
-	Thread *thread;
-	cerrojo->Acquire();
-	thread = queue->Remove();
-	while(thread!=NULL){
-		scheduler->ReadyToRun(thread);
-		thread = queue->Remove();
+	while(sleepingProcsCounter>0){
+		s->V();
+		sleepingProcsCounter--;
 	}
-	cerrojo->Release();
-
 }
 
 
@@ -171,7 +154,7 @@ Messages::Messages(const char* debugName){
 	 name = debugName;
 	 lock = new Lock(debugName);
 	 portNumber = 0;
-	 queue = new List <Slot>;
+	 queue = new List <Slot*>;
 }
 
 Messages::~Messages(){
@@ -181,10 +164,32 @@ Messages::~Messages(){
 
 
 Port Messages::getNextPortNumber(){
-	return ++portNumber;
+	return portNumber++;
 }
 
 void Messages::Send(Port puerto, int mensaje) {
+	lock->Acquire();
+	List<Slot*>::iterator it;
+	for (it = queue.begin(); it != queue.end(); it++){
+		if(it->puerto == puerto){
+			if(!it->messageBufQueue->empty){
+				int *menssageBuf = it->messageBufQueue->remove();
+				*messageBuf = mensaje;
+				it->menssageBufQueue->condition->signal();
+				lock->release();
+				return;
+			} else {
+				it->messageBufQueue->message->Append(mensaje);
+				it->messageBufQueue->condition->Wait();
+				lock->release();
+				return;
+			}
+		}
+	}
+	Slot* slot = new Slot();
+	slot->condition = new Condition(name, lock);
+	slot->message->Append(mensaje);
+	slot->condition->Wait();
 	//pensar bien donde van lock->Acquire(); lock->Release();
 	//Buscar puerto por receive en queue
 	// en caso de encontrarlo, copiar el mensaje al puntero del slot, borrar el slot y despertar a dicho proceso usando la condicion
@@ -193,6 +198,7 @@ void Messages::Send(Port puerto, int mensaje) {
 }
 
 void Messages::Receive(Port puerto, int* mensaje) {
+
 	//pensar bien donde van lock->Acquire(); lock->Release();
 	//Buscar puerto por send en queue
 	// en caso de no encontrar, encolas un slot, e irse a dormir;

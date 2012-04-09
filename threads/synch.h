@@ -89,8 +89,6 @@ class Lock {
     const char* name;				// para depuraci�n
     // a�adir aqu� otros campos que sean necesarios
     Semaphore *s;
-    int state;
-    Thread* lockOwnerThread;
 };
 
 //  La siguiente clase define una "variable condici�n". Una variable condici�n
@@ -147,9 +145,8 @@ class Condition {
   private:
     const char* name;
     Lock* cerrojo;
-    List<Thread*> *queue;
-
-    // aqu� se a�aden otros campos que sean necesarios
+    Semaphore s;
+    int sleepingProcsCounter;
 };
 
 /*
@@ -179,17 +176,12 @@ class Condition {
 */
 
 typedef int Port;
-typedef enum SlotCreator{
-	sender,
-	receiver,
-};
 
 typedef struct{
 	Port port;
 	Condition* condition;
-	int message;
-	int* messageBuf;
-	SlotCreator creator;
+	List<int> messageQueue;
+	List<int*> messageBufQueue;
 } Slot;
 
 /* */
