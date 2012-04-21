@@ -15,22 +15,65 @@
 #include "copyright.h"
 #include "utility.h"
 
-// The following class defines a "list element" -- which is
-// used to keep track of one item on a list.  
-//
-// Internal data structures kept public so that List operations can
-// access them directly.
-
 template <class Item>
 class ListElement {
    public:
      ListElement(Item itemPtr, int sortKey);	// initialize a list element
 
-     ListElement *next;		// next element on list, 
-				// NULL if this is the last
+     ListElement *next;		// next element on list, NULL if this is the last
      int key;		    	// priority, for a sorted list
      Item item; 	    	// item on the list
 };
+
+//----------------------------------------------------------------------
+// ListElement::ListElement
+// 	Initialize a list element, so it can be added somewhere on a list.
+//
+//	"anItem" is the item to be put on the list.
+//	"sortKey" is the priority of the item, if any.
+//----------------------------------------------------------------------
+
+template <class Item>
+ListElement<Item>::ListElement(Item anItem, int sortKey)
+{
+     item = anItem;
+     key = sortKey;
+     next = NULL;	// assume we'll put it at the end of the list
+}
+
+//----------------------------------------------------------------------
+// Iterador sobre los elementos de una lista.
+//----------------------------------------------------------------------
+template <class Item>
+class Iterator {
+	public:
+		Iterator(ListElement<Item> *first);
+		~Iterator();
+		bool HasNext();
+		Item Next();
+	private:
+		ListElement<Item> *nextElement;
+		bool hasNext;
+};
+
+template <class Item>
+Iterator<Item>::Iterator(ListElement<Item> *first){
+	hasNext = (first != NULL);
+	nextElement = first;
+}
+
+template <class Item>
+bool Iterator<Item>::HasNext(){
+	return hasNext;
+}
+
+template <class Item>
+Item Iterator<Item>::Next(){
+	ListElement<Item> *element = nextElement;
+	nextElement = nextElement->next;
+	hasNext = (nextElement != NULL);
+	return element->item;
+}
 
 // The following class defines a "list" -- a singly linked list of
 // list elements, each of which points to a single item on the list.
@@ -57,27 +100,13 @@ class List {
     void SortedInsert(Item item, int sortKey);	// Put item into list
     Item SortedRemove(int *keyPtr); 	  	// Remove first item from list
 
+    Iterator<Item>* GetIterator();
+
   private:
     typedef ListElement<Item> ListNode;
     ListNode *first;  		// Head of the list, NULL if list is empty
     ListNode *last;		// Last element of list
 };
-
-//----------------------------------------------------------------------
-// ListElement::ListElement
-// 	Initialize a list element, so it can be added somewhere on a list.
-//
-//	"anItem" is the item to be put on the list.  
-//	"sortKey" is the priority of the item, if any.
-//----------------------------------------------------------------------
-
-template <class Item>
-ListElement<Item>::ListElement(Item anItem, int sortKey)
-{
-     item = anItem;
-     key = sortKey;
-     next = NULL;	// assume we'll put it at the end of the list 
-}
 
 //----------------------------------------------------------------------
 // List::List
@@ -87,13 +116,13 @@ ListElement<Item>::ListElement(Item anItem, int sortKey)
 
 template <class Item>
 List<Item>::List()
-{ 
-    first = last = NULL; 
+{
+    first = last = NULL;
 }
 
 //----------------------------------------------------------------------
 // List::~List
-//	Prepare a list for deallocation.  If the list still contains any 
+//	Prepare a list for deallocation.  If the list still contains any
 //	ListElements, de-allocate them.  However, note that we do *not*
 //	de-allocate the "items" on the list -- this module allocates
 //	and de-allocates the ListElements to keep track of each item,
@@ -103,7 +132,7 @@ List<Item>::List()
 
 template <class Item>
 List<Item>::~List()
-{ 
+{
     // delete all the list elements
     while ( !IsEmpty() ) {
       Remove();
@@ -113,12 +142,12 @@ List<Item>::~List()
 //----------------------------------------------------------------------
 // List::Append
 //      Append an "item" to the end of the list.
-//      
+//
 //	Allocate a ListElement to keep track of the item.
 //      If the list is empty, then this will be the only element.
 //	Otherwise, put it at the end.
 //
-//	"item" is the thing to put on the list, it can be a pointer to 
+//	"item" is the thing to put on the list, it can be a pointer to
 //		anything.
 //----------------------------------------------------------------------
 
@@ -140,12 +169,12 @@ List<Item>::Append(Item item)
 //----------------------------------------------------------------------
 // List::Prepend
 //      Put an "item" on the front of the list.
-//      
+//
 //	Allocate a ListElement to keep track of the item.
 //      If the list is empty, then this will be the only element.
 //	Otherwise, put it at the beginning.
 //
-//	"item" is the thing to put on the list, it can be a pointer to 
+//	"item" is the thing to put on the list, it can be a pointer to
 //		anything.
 //----------------------------------------------------------------------
 
@@ -167,7 +196,7 @@ List<Item>::Prepend(Item item)
 //----------------------------------------------------------------------
 // List::Remove
 //      Remove the first "item" from the front of the list.
-// 
+//
 // Returns:
 //	Pointer to removed item, NULL if nothing on the list.
 //----------------------------------------------------------------------
@@ -181,7 +210,7 @@ List<Item>::Remove()
 
 //----------------------------------------------------------------------
 // List::Apply
-//	Apply a function to each item on the list, by walking through  
+//	Apply a function to each item on the list, by walking through
 //	the list, one element at a time.
 //
 //	"func" is the procedure to apply to each element of the list.
@@ -203,25 +232,25 @@ List<Item>::Apply(void (*func)(Item))
 
 template <class Item>
 bool
-List<Item>::IsEmpty() 
-{ 
+List<Item>::IsEmpty()
+{
     if (first == NULL)
         return true;
     else
-	return false; 
+	return false;
 }
 
 //----------------------------------------------------------------------
 // List::SortedInsert
 //      Insert an "item" into a list, so that the list elements are
 //	sorted in increasing order by "sortKey".
-//      
+//
 //	Allocate a ListElement to keep track of the item.
 //      If the list is empty, then this will be the only element.
 //	Otherwise, walk through the list, one element at a time,
 //	to find where the new item should be placed.
 //
-//	"item" is the thing to put on the list, it can be a pointer to 
+//	"item" is the thing to put on the list, it can be a pointer to
 //		anything.
 //	"sortKey" is the priority of the item.
 //----------------------------------------------------------------------
@@ -236,7 +265,7 @@ List<Item>::SortedInsert(Item item, int sortKey)
     if (IsEmpty()) {	// if list is empty, put
         first = element;
         last = element;
-    } else if (sortKey < first->key) {	
+    } else if (sortKey < first->key) {
 		// item goes on front of list
 	element->next = first;
 	first = element;
@@ -256,13 +285,13 @@ List<Item>::SortedInsert(Item item, int sortKey)
 //----------------------------------------------------------------------
 // List::SortedRemove
 //      Remove the first "item" from the front of a sorted list.
-// 
+//
 // Returns:
 //	Pointer to removed item, NULL if nothing on the list.
 //	Sets *keyPtr to the priority value of the removed item
 //	(this is needed by interrupt.cc, for instance).
 //
-//	"keyPtr" is a pointer to the location in which to store the 
+//	"keyPtr" is a pointer to the location in which to store the
 //		priority of the removed item.
 //----------------------------------------------------------------------
 
@@ -272,11 +301,11 @@ List<Item>::SortedRemove(int *keyPtr)
 {
     ListNode *element = first;
 
-    if (IsEmpty()) 
+    if (IsEmpty())
 	return Item();
 
     Item thing = first->item;
-    if (first == last) {	// list had one item, now has none 
+    if (first == last) {	// list had one item, now has none
         first = NULL;
 	last = NULL;
     } else {
@@ -286,6 +315,11 @@ List<Item>::SortedRemove(int *keyPtr)
         *keyPtr = element->key;
     delete element;
     return thing;
+}
+
+template <class Item>
+Iterator<Item>* List<Item>::GetIterator(){
+	return new Iterator<Item>(first);
 }
 
 
