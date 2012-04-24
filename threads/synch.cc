@@ -115,13 +115,13 @@ void Lock::Release() {
 }
 bool Lock::isHeldByCurrentThread()
 {
-    return lockOwnerThread == currentThread;
+    return true; // FIXME
 }
 
 Condition::Condition(const char* debugName, Lock* conditionLock) {
 	lock = conditionLock;
 	name = debugName;
-	Semaphore s = new Semaphore(debugName, 0);
+	s = new Semaphore(debugName, 0);
 	sleepingProcsCounter = 0;
 }
 
@@ -130,8 +130,8 @@ Condition::~Condition() {
 }
 
 void Condition::Wait() {
-	lock->Release();
 	sleepingProcsCounter++;
+	lock->Release();
 	s->P();
 }
 
@@ -154,7 +154,7 @@ Messages::Messages(const char* debugName){
 	 name = debugName;
 	 lock = new Lock(debugName);
 	 portNumber = 0;
-	 queue = new List <Slot*>;
+	 queue = new List<Slot*>;
 }
 
 Messages::~Messages(){
@@ -167,42 +167,56 @@ Port Messages::getNextPortNumber(){
 	return portNumber++;
 }
 
-void Messages::Send(Port puerto, int mensaje) {
+void Messages::Send(Port port, int senderMsg) {
 	lock->Acquire();
-	List<Slot*>::iterator it;
-	for (it = queue.begin(); it != queue.end(); it++){
-		if(it->puerto == puerto){
-			if(!it->messageBufQueue->empty){
-				int *menssageBuf = it->messageBufQueue->remove();
-				*messageBuf = mensaje;
-				it->menssageBufQueue->condition->signal();
-				lock->release();
+	Iterator<Slot*> *iterator = queue->GetIterator();
+	while(iterator->HasNext()){
+		 Slot *slot = iterator->Next();
+		if(slot->port == port){
+			if(!slot->receiverBufQueue->IsEmpty()){
+				int *receiverBuf = slot->receiverBufQueue->Remove();
+				*receiverBuf = senderMsg;
+				slot->condition->Signal();
+				lock->Release();
 				return;
 			} else {
-				it->messageBufQueue->message->Append(mensaje);
-				it->messageBufQueue->condition->Wait();
-				lock->release();
+				slot->senderMsgQueue->Append(senderMsg);
+				slot->condition->Wait();
+				lock->Release();
 				return;
 			}
 		}
 	}
 	Slot* slot = new Slot();
 	slot->condition = new Condition(name, lock);
-	slot->message->Append(mensaje);
+	slot->senderMsgQueue = new List<int>;
+	slot->senderMsgQueue->Append(senderMsg);
 	slot->condition->Wait();
-	//pensar bien donde van lock->Acquire(); lock->Release();
-	//Buscar puerto por receive en queue
-	// en caso de encontrarlo, copiar el mensaje al puntero del slot, borrar el slot y despertar a dicho proceso usando la condicion
-	// en caso contrario crear el slot
-
 }
 
-void Messages::Receive(Port puerto, int* mensaje) {
-
-	//pensar bien donde van lock->Acquire(); lock->Release();
-	//Buscar puerto por send en queue
-	// en caso de no encontrar, encolas un slot, e irse a dormir;
-	// en caso contrario crear el slot
-
-
+void Messages::Receive(Port port, int *receiverBuf) {
+	lock->Acquire();
+	Iterator<Slot*> *iterator = queue->GetIterator();
+	while(iterator->HasNext()){
+		 Slot *slot = iterator->Next();
+		if(slot->port == port){
+			if(!slot->senderMsgQueue->IsEmpty()){
+				int senderMsg = slot->senderMsgQueue->Remove();
+				*receiverBuf = senderMsg;
+				slot->condition->Signal();
+				lock->Release();
+				return;
+			} else {
+				slot->receiverBufQueue->Append(receiverBuf);
+				slot->condition->Wait();
+				lock->Release();
+				return;
+			}
+		}
+	}
+	Slot* slot = new Slot();
+	slot->condition = new Condition(name, lock);
+	slot->receiverBufQueue = new List<int*>;
+	slot->receiverBufQueue->Append(receiverBuf);
+	slot->condition->Wait();
 }

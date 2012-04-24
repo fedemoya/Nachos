@@ -144,47 +144,21 @@ class Condition {
 
   private:
     const char* name;
-    Lock* cerrojo;
-    Semaphore s;
+    Lock* lock;
+    Semaphore *s;
     int sleepingProcsCounter;
 };
-
-/*
-
-C�digo original del Nachos para las variables condici�n - NO USAR
-  
-class Condition {
-  public:
-    Condition(char* debugName);		// initialize condition to 
-					// "no one waiting"
-    ~Condition();			// deallocate the condition
-    char* getName() { return (name); }
-    
-    void Wait(Lock *conditionLock); 	// these are the 3 operations on 
-					// condition variables; releasing the 
-					// lock and going to sleep are 
-					// *atomic* in Wait()
-    void Signal(Lock *conditionLock);   // conditionLock must be held by
-    void Broadcast(Lock *conditionLock);// the currentThread for all of 
-					// these operations
-
-  private:
-    char* name;
-    // plus some other stuff you'll need to define
-};
-
-*/
 
 typedef int Port;
 
 typedef struct{
 	Port port;
 	Condition* condition;
-	List<int> messageQueue;
-	List<int*> messageBufQueue;
+	List<int> *senderMsgQueue;
+	List<int*> *receiverBufQueue;
 } Slot;
 
-/* */
+
 class Messages {
   public:
   // Constructor: inicia el cerrojo como libre
@@ -199,10 +173,9 @@ class Messages {
 
   private:
     const char* name;				// para depuraci�n
-    // a�adir aqu� otros campos que sean necesarios
     Lock* lock;
     Port portNumber;
-    List <Slot> queue;
+    List<Slot*>* queue;
 };
 
 
