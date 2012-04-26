@@ -25,6 +25,8 @@
 #include "synch.h"
 #include "system.h"
 
+#include <stdio.h>
+
 //----------------------------------------------------------------------
 // Semaphore::Semaphore
 // 	Initialize a semaphore, so that it can be used for synchronization.
@@ -129,10 +131,26 @@ Condition::~Condition() {
 	//nada, no estamos consumiendo memoria
 }
 
+// Las tres operaciones sobre variables condici�n.
+// El hilo que invoque a cualquiera de estas operaciones debe tener
+// adquirido el cerrojo correspondiente; de lo contrario se debe
+// producir un error.
+// El codigo cliente debe adquirir previamente el cerrojo de la condicion, ejemplo:
+// mylock = new Lock("pepe");
+// condicion = new Condition("pepe",mylock)
+// mylock ->Acquire();
+// condicion -> wait();
+// ...
+// mylock ->Acquire();
+// condicion->Signal();
+// mylock ->Release();
+
 void Condition::Wait() {
 	sleepingProcsCounter++;
-	lock->Release();
-	s->P();
+	lock->Release();//si hay cambio de contexto aca y otro hilo hace signal, el v() correspondiente no despierta a nadie
+	s->P();// y entonces  en este P(), el currentThread no se va a dormir por que la variable dentro del semaforo no es 0
+	//por ende lo unico importante es proteger la zona crítica de esta porcion de codigo que es la variable sleepingProcsCounter,
+	//con lo cual se debe incrementarla antes de liberar el cerrojo
 }
 
 void Condition::Signal() {
@@ -182,15 +200,17 @@ void Messages::Send(Port port, int senderMsg) {
 			} else {
 				slot->senderMsgQueue->Append(senderMsg);
 				slot->condition->Wait();
-				lock->Release();
 				return;
 			}
 		}
 	}
 	Slot* slot = new Slot();
+	slot->port = port;
 	slot->condition = new Condition(name, lock);
 	slot->senderMsgQueue = new List<int>;
+	slot->receiverBufQueue = new List<int*>;
 	slot->senderMsgQueue->Append(senderMsg);
+	queue->Append(slot);
 	slot->condition->Wait();
 }
 
@@ -198,15 +218,19 @@ void Messages::Receive(Port port, int *receiverBuf) {
 	lock->Acquire();
 	Iterator<Slot*> *iterator = queue->GetIterator();
 	while(iterator->HasNext()){
+//		printf("Entro while\n");
 		 Slot *slot = iterator->Next();
 		if(slot->port == port){
+//			printf("Entro primer if\n");
 			if(!slot->senderMsgQueue->IsEmpty()){
+//				printf("Entro segundo if\n");
 				int senderMsg = slot->senderMsgQueue->Remove();
 				*receiverBuf = senderMsg;
 				slot->condition->Signal();
 				lock->Release();
 				return;
 			} else {
+//				printf("Entro segundo else\n");
 				slot->receiverBufQueue->Append(receiverBuf);
 				slot->condition->Wait();
 				lock->Release();
@@ -215,8 +239,11 @@ void Messages::Receive(Port port, int *receiverBuf) {
 		}
 	}
 	Slot* slot = new Slot();
+	slot->port = port;
 	slot->condition = new Condition(name, lock);
 	slot->receiverBufQueue = new List<int*>;
+	slot->senderMsgQueue = new List<int>;
 	slot->receiverBufQueue->Append(receiverBuf);
+	queue->Append(slot);
 	slot->condition->Wait();
 }
