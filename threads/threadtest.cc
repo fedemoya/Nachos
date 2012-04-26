@@ -14,6 +14,7 @@
 
 #include "copyright.h"
 #include "system.h"
+#include "synch.h"
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -27,7 +28,8 @@
 void
 SimpleThread(void* name)
 {
-    // Reinterpret arg "name" as a string
+
+	// Reinterpret arg "name" as a string
     char* threadName = (char*)name;
     
     // If the lines dealing with interrupts are commented,
@@ -35,14 +37,33 @@ SimpleThread(void* name)
     // printf execution may cause race conditions.
     for (int num = 0; num < 10; num++) {
         //IntStatus oldLevel = interrupt->SetLevel(IntOff);
-	printf("*** thread %s looped %d times\n", threadName, num);
-	//interrupt->SetLevel(oldLevel);
-        //currentThread->Yield();
+    	printf("*** thread %s looped %d times\n", threadName, num);
+    	//interrupt->SetLevel(oldLevel);
+        currentThread->Yield();
     }
     //IntStatus oldLevel = interrupt->SetLevel(IntOff);
     printf(">>> Thread %s has finished\n", threadName);
     //interrupt->SetLevel(oldLevel);
+
 }
+
+// Casos de prueba
+Semaphore *semaphore;
+Lock *lock;
+Condition* condition;
+
+void CPSemaphore(void* name){
+	semaphore->P();
+	SimpleThread(name);
+	semaphore->V();
+}
+
+void CPLock(void* name){
+	lock->Acquire();
+	SimpleThread(name);
+	lock->Release();
+}
+
 
 //----------------------------------------------------------------------
 // ThreadTest
@@ -56,6 +77,12 @@ ThreadTest()
 {
     DEBUG('t', "Entering SimpleTest");
 
+    char* name = new char[100];
+    sprintf(name, "Pruebas Thread");
+
+    semaphore = new Semaphore(name, 1);
+    lock = new Lock(name);
+
     for ( int k=1; k<=10; k++) {
       char* threadname = new char[100];
       sprintf(threadname, "Hilo %d", k);
@@ -64,5 +91,6 @@ ThreadTest()
     }
     
     SimpleThread( (void*)"Hilo 0");
+
 }
 

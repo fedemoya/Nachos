@@ -56,6 +56,7 @@
 
 // External functions used by this file
 
+void MessagesTest();
 void ThreadTest();
 void Copy(const char *unixFile, const char *nachosFile);
 void Print(const char *file);
@@ -88,7 +89,8 @@ main(int argc, char **argv)
     (void) Initialize(argc, argv);
     
 #ifdef THREADS
-    ThreadTest();
+//    ThreadTest();
+    MessagesTest();
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
