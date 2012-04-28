@@ -33,18 +33,22 @@ const unsigned STACK_FENCEPOST = 0xdeadbeef;
 //----------------------------------------------------------------------
 
 
+Thread::Thread(const char* debugName){
+	Thread(debugName, false);
+}
+
 //--{smb 18/04/2012 - Pr 3 - ej 3
 //Thread::Thread(const char* debugName);	// initialize a Thread
 Thread::Thread(const char* debugName,bool isJoinable)// initialize a Thread
 {
 	mustMakeJoin = isJoinable;
-	isWaittingJoinToFinish = false;
+	isWaittingJoinFromParentToFinish = false;
 	if (mustMakeJoin){//solo son usadas por los hilos que deben esperar ser joineados
 		conditionLock = new Lock(debugName);
-		condition = new Condition(debugname,conditionLock);
+		condition = new Condition(debugName,conditionLock);
 	}
 //--}
-	name = threadName;
+	name = debugName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
@@ -140,9 +144,10 @@ Thread::CheckOverflow()
 //--{smb 18/04/2012 - Pr 3 - ej 3
 void Thread::Join(Thread* target){
 
-	if(!target->canMakeJoin){//chequeo si no es joineable
-		return;//esto creo que no está dentro de la precondicion asi que se puede implementar como se quiera
-	} // otra opcion es ASSERT(target->canMakeJoin)
+	//if(!target->canMakeJoin){//chequeo si no es joineable
+	//	return;//esto creo que no está dentro de la precondicion asi que se puede implementar como se quiera
+	//} // otra opcion es ASSERT(target->canMakeJoin)
+	ASSERT(target->canMakeJoin());
 	target->makeJoinFromParentJoin(this);
 }
 
@@ -150,14 +155,15 @@ bool Thread::canMakeJoin(){
 	return mustMakeJoin;
 }
 
-void Thread::makeJoinFromParentJoin(Thread* parent){
+void Thread::makeJoinFromParentJoin(Thread* padre){
 	if (mustMakeJoin) {//si le hacen mas de un setParentJoin dejara siempre el ultimo hilo
 		conditionLock->Acquire();
 		if (isWaittingJoinFromParentToFinish) {
-			condition->signal();
+			condition->Signal();
 			conditionLock->Release();
 		} else {
-			condition->wait();
+			this->parent = padre;
+			condition->Wait();
 		}
 	}
 }
@@ -190,11 +196,11 @@ Thread::Finish ()
     if (mustMakeJoin) {
     	conditionLock->Acquire();
     	if (parent){
-    	 	condition->signal();
+    	 	condition->Signal();
     	 	conditionLock->Release();
     	} else {
     		isWaittingJoinFromParentToFinish = true;
-    		condition->wait();
+    		condition->Wait();
     	}
     }
     //--}

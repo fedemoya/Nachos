@@ -55,7 +55,7 @@
 
 
 // External functions used by this file
-
+void JoinTest();
 void MessagesTest();
 void ThreadTest();
 void Copy(const char *unixFile, const char *nachosFile);
@@ -90,7 +90,8 @@ main(int argc, char **argv)
     
 #ifdef THREADS
 //    ThreadTest();
-    MessagesTest();
+//    MessagesTest();
+    JoinTest();
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {

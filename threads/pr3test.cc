@@ -13,6 +13,34 @@
 #include <stdlib.h>
 #include <time.h>
 
+// El hijo termina antes de que el padre llame a Join.
+void boba1(void *arg){
+	for(int i=0; i<10000; i++);
+	printf("Current thread: %s\n",currentThread->getName());
+}
+
+// Cuando el padre llama a Join el hijo todavia esta vivo.
+void boba2(void *arg){
+	currentThread->Yield();
+	for(int i=0; i<10000; i++);
+	printf("Current thread: %s\n",currentThread->getName());
+}
+
+void JoinTest(){
+	char* threadname = new char[100];
+	sprintf(threadname, "Hijo1");
+	Thread *childThread = new Thread(threadname, true);
+ 	childThread->Fork(boba2, NULL);
+ 	currentThread->Join(childThread);
+ 	printf("Current thread: %s\n",currentThread->getName());
+	sprintf(threadname, "Hijo2");
+	childThread = new Thread(threadname, true);
+	childThread->Fork(boba2, NULL);
+	currentThread->Join(childThread);
+	printf("Current thread: %s\n",currentThread->getName());
+}
+
+
 Messages *Mensajes;
 
 typedef struct {

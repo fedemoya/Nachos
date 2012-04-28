@@ -70,6 +70,9 @@ enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
 //  Some threads also belong to a user address space; threads
 //  that only run in the kernel have a NULL address space.
 
+class Condition;
+class Lock;
+
 class Thread {
   private:
     // NOTE: DO NOT CHANGE the order of these first two members.
@@ -79,8 +82,8 @@ class Thread {
 
   public:
     //--{smb 18/04/2012
-    //Thread(const char* debugName);	// initialize a Thread
-     Thread(const char* debugName,bool isJoinable);	// initialize a Thread
+    Thread(const char* debugName);	// initialize a Thread
+    Thread(const char* debugName,bool isJoinable);	// initialize a Thread
     //--}
 
     ~Thread(); 				// deallocate a Thread
@@ -91,9 +94,9 @@ class Thread {
     // basic thread operations
 
     //--{smb 18/04/2012 - Pr 3 - ej 3
-     void Thread::Join(Thread* target);
-     bool Thread::canMakeJoin();
-     void Thread::makeJoinFromParentJoin(Thread* parent);
+     void Join(Thread* target);
+     bool canMakeJoin();
+     void makeJoinFromParentJoin(Thread* padre);
      //--}
 
     void Fork(VoidFunctionPtr func, void* arg);	// Make thread run (*func)(arg)
