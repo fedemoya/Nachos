@@ -78,13 +78,23 @@ class Thread {
     HostMemoryAddress machineState[MachineStateSize];	// all registers except for stackTop
 
   public:
-    Thread(const char* debugName);	// initialize a Thread 
+    //--{smb 18/04/2012
+    //Thread(const char* debugName);	// initialize a Thread
+     Thread(const char* debugName,bool isJoinable);	// initialize a Thread
+    //--}
+
     ~Thread(); 				// deallocate a Thread
 					// NOTE -- thread being deleted
 					// must not be running when delete 
 					// is called
 
     // basic thread operations
+
+    //--{smb 18/04/2012 - Pr 3 - ej 3
+     void Thread::Join(Thread* target);
+     bool Thread::canMakeJoin();
+     void Thread::makeJoinFromParentJoin(Thread* parent);
+     //--}
 
     void Fork(VoidFunctionPtr func, void* arg);	// Make thread run (*func)(arg)
     void Yield();  				// Relinquish the CPU if any 
@@ -107,6 +117,13 @@ class Thread {
 					// (If NULL, don't deallocate stack)
     ThreadStatus status;		// ready, running or blocked
     const char* name;
+    //--{smb 18/04/2012 - Pr 3 - ej 3
+    bool mustMakeJoin;
+    bool isWaittingJoinFromParentToFinish;
+    Thread* parent;
+    Lock* conditionLock;
+    Condition* condition;
+    //--}
 
     void StackAllocate(VoidFunctionPtr func, void* arg);
     					// Allocate a stack for thread.

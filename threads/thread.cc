@@ -32,9 +32,19 @@ const unsigned STACK_FENCEPOST = 0xdeadbeef;
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
 
-Thread::Thread(const char* threadName)
+
+//--{smb 18/04/2012 - Pr 3 - ej 3
+//Thread::Thread(const char* debugName);	// initialize a Thread
+Thread::Thread(const char* debugName,bool isJoinable)// initialize a Thread
 {
-    name = threadName;
+	mustMakeJoin = isJoinable;
+	isWaittingJoinToFinish = false;
+	if (mustMakeJoin){//solo son usadas por los hilos que deben esperar ser joineados
+		conditionLock = new Lock(debugName);
+		condition = new Condition(debugname,conditionLock);
+	}
+//--}
+	name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
@@ -127,6 +137,32 @@ Thread::CheckOverflow()
     }
 }
 
+//--{smb 18/04/2012 - Pr 3 - ej 3
+void Thread::Join(Thread* target){
+
+	if(!target->canMakeJoin){//chequeo si no es joineable
+		return;//esto creo que no está dentro de la precondicion asi que se puede implementar como se quiera
+	} // otra opcion es ASSERT(target->canMakeJoin)
+	target->makeJoinFromParentJoin(this);
+}
+
+bool Thread::canMakeJoin(){
+	return mustMakeJoin;
+}
+
+void Thread::makeJoinFromParentJoin(Thread* parent){
+	if (mustMakeJoin) {//si le hacen mas de un setParentJoin dejara siempre el ultimo hilo
+		conditionLock->Acquire();
+		if (isWaittingJoinFromParentToFinish) {
+			condition->signal();
+			conditionLock->Release();
+		} else {
+			condition->wait();
+		}
+	}
+}
+//--}
+
 //----------------------------------------------------------------------
 // Thread::Finish
 // 	Called by ThreadRoot when a thread is done executing the 
@@ -150,7 +186,18 @@ Thread::Finish ()
     ASSERT(this == currentThread);
     
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
-    
+    //--{smb 18/04/2012 - Pr 3 - ej 3
+    if (mustMakeJoin) {
+    	conditionLock->Acquire();
+    	if (parent){
+    	 	condition->signal();
+    	 	conditionLock->Release();
+    	} else {
+    		isWaittingJoinFromParentToFinish = true;
+    		condition->wait();
+    	}
+    }
+    //--}
     threadToBeDestroyed = currentThread;
     Sleep();					// invokes SWITCH
     // not reached
