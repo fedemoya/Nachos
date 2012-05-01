@@ -243,7 +243,7 @@ sysdep.o: ../machine/sysdep.cc ../threads/copyright.h \
  /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h \
  /usr/include/sys/file.h /usr/include/fcntl.h /usr/include/bits/fcntl.h \
  /usr/include/sys/stat.h /usr/include/bits/stat.h /usr/include/sys/un.h \
- /usr/include/sys/mman.h /usr/include/bits/mman.h \
+ /usr/include/sys/mman.h /usr/include/bits/mman.h /usr/include/sys/time.h \
  /usr/include/sys/syscall.h /usr/include/asm/unistd.h \
  /usr/include/asm/unistd_32.h /usr/include/bits/syscall.h \
  /usr/include/unistd.h /usr/include/bits/posix_opt.h \
