@@ -13,6 +13,15 @@
 #include "list.h"
 #include "thread.h"
 
+//--{smb 01/05/2012
+typedef enum  { PrioridadMinima = 0,
+				PrioridadBaja,
+				PrioridadMedia,
+				PrioridadMaxima,
+				Prioridad_MaxValue//indica la cantidad de Prioridades que existen
+			  } PrioridadHilo;
+//--}
+
 // The following class defines the scheduler/dispatcher abstraction -- 
 // the data structures and operations needed to keep track of which 
 // thread is running, and which threads are ready but not running.
@@ -22,14 +31,20 @@ class Scheduler {
     Scheduler();			// Initialize list of ready threads 
     ~Scheduler();			// De-allocate ready list
 
-    void ReadyToRun(Thread* thread);	// Thread can be dispatched.
+    //--{smb 01/05/2012
+    //void ReadyToRun(Thread* thread);	// Thread can be dispatched.
+    void ReadyToRun(Thread* thread,PrioridadHilo prioridad);	// Thread can be dispatched.
+    //--}
     Thread* FindNextToRun();		// Dequeue first thread on the ready 
 					// list, if any, and return thread.
     void Run(Thread* nextThread);	// Cause nextThread to start running
     void Print();			// Print contents of ready list
     
   private:
-    List<Thread*> *readyList;  		// queue of threads that are ready to run,
+//--{smb 01/05/2012
+    List<Thread*> *readyList[];
+//    List<Thread*> *readyList;  		// queue of threads that are ready to run,
+//--}
 					// but not running
 };
 
