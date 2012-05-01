@@ -32,7 +32,7 @@ class Scheduler {
     ~Scheduler();			// De-allocate ready list
 
     //--{smb 01/05/2012
-    //void ReadyToRun(Thread* thread);	// Thread can be dispatched.
+    void ReadyToRun(Thread* thread);	// Thread can be dispatched.
     void ReadyToRun(Thread* thread,PrioridadHilo prioridad);	// Thread can be dispatched.
     //--}
     Thread* FindNextToRun();		// Dequeue first thread on the ready 
@@ -42,7 +42,7 @@ class Scheduler {
     
   private:
 //--{smb 01/05/2012
-    List<Thread*> *readyList[];
+    List<Thread*> *readyList[Prioridad_MaxValue];
 //    List<Thread*> *readyList;  		// queue of threads that are ready to run,
 //--}
 					// but not running

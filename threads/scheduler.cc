@@ -31,7 +31,7 @@ Scheduler::Scheduler()
 { 
 	//--{smb 01/05/2012
     //readyList = new List<Thread*>;
-	readyList = new List<Thread*>[Prioridad_MaxValue];//creo que es lo mismo que readyList = malloc(Prioridad_MaxValue*sizeof(List<Thread*>));
+	//readyList = (List<Thread*>*)malloc(Prioridad_MaxValue*sizeof(List<Thread*>));
 	for(int i= PrioridadMinima;i<Prioridad_MaxValue;i++){
 		readyList[i] = new List<Thread*>;
 	}
@@ -51,7 +51,7 @@ Scheduler::~Scheduler()
 	for(int i= PrioridadMinima;i<Prioridad_MaxValue;i++){
 		delete readyList[i];
 	}
-	delete readyList;
+	//delete readyList;
 	//--}
 } 
 
@@ -65,7 +65,12 @@ Scheduler::~Scheduler()
 
 //--{smb 01/05/2012
 void
-//Scheduler::ReadyToRun (Thread *thread)
+Scheduler::ReadyToRun (Thread *thread){
+	this->ReadyToRun(thread,PrioridadBaja);	// Thread can be dispatched.
+}
+
+
+void
 Scheduler::ReadyToRun(Thread* thread,PrioridadHilo prioridad)	// Thread can be dispatched.
 {
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
