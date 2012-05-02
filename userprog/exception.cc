@@ -53,11 +53,22 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
+    if (which == SyscallException) {
+    	switch (type) {
+    		case SC_Halt :
+    			printf("El Halt de test pasa por acá\n");
+    			DEBUG('a', "Shutdown, initiated by user program.\n");
+    			interrupt->Halt();
+    			break;
+    		case SC_Exec :
+    			printf("Se ejecuto la llamada al sistema EXEC.\n");
+    			interrupt->Halt();
+    			break;
+    		default :
+    			ASSERT(false);
+    	}
     } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(false);
+    	printf("Unexpected user mode exception %d %d\n", which, type);
+    	ASSERT(false);
     }
 }

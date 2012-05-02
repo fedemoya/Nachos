@@ -10,12 +10,12 @@
  *	be careful to allocate a big enough stack to hold the automatics!
  */
 
-//#include "../userprog/syscall.h"
 #include "syscall.h"
 
 int
 main()
 {
-    Halt();
+    char hola[1] = "h";
+    Exec(hola);
     /* not reached */
 }
