@@ -34,7 +34,7 @@ CPP = /lib/cpp
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR) -mips1
 
-all: halt exec shell matmult sort
+all: halt pruebasSyscall shell matmult sort
 
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.s > strt.s
@@ -65,16 +65,16 @@ matmult: matmult.o start.o
 	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
 	../bin/coff2noff matmult.coff matmult
 
-exec.o: exec.c
-	$(CC) $(CFLAGS) -c exec.c
-exec: exec.o start.o
-	$(LD) $(LDFLAGS) start.o exec.o -o exec.coff
-	../bin/coff2noff exec.coff exec
+pruebasSyscall.o: pruebasSyscall.c
+	$(CC) $(CFLAGS) -c pruebasSyscall.c
+pruebasSyscall: pruebasSyscall.o start.o
+	$(LD) $(LDFLAGS) start.o pruebasSyscall.o -o pruebasSyscall.coff
+	../bin/coff2noff pruebasSyscall.coff pruebasSyscall
 
 # Estas reglas sirven para compilar programas simples,
-# que consistan en un único fuente.
+# que consistan en un ï¿½nico fuente.
 # Las reglas anteriores para construir los ejecutables
-# halt, shell, sort y matmult se podrían suprimir
+# halt, shell, sort y matmult se podrï¿½an suprimir
 
 %: %.c 
 	make start.o 

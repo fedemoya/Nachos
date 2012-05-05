@@ -181,7 +181,6 @@ FileSystem::Create(const char *name, int initialSize)
     bool success;
 
     DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
-
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
 
@@ -195,19 +194,19 @@ FileSystem::Create(const char *name, int initialSize)
             success = false;		// no free block for file header 
         else if (!directory->Add(name, sector))
             success = false;	// no space in directory
-	else {
-    	    hdr = new FileHeader;
-	    if (!hdr->Allocate(freeMap, initialSize))
-            	success = false;	// no space on disk for data
-	    else {	
-	    	success = true;
-		// everthing worked, flush all changes back to disk
-    	    	hdr->WriteBack(sector); 		
-    	    	directory->WriteBack(directoryFile);
-    	    	freeMap->WriteBack(freeMapFile);
-	    }
-            delete hdr;
-	}
+		else {
+				hdr = new FileHeader;
+			if (!hdr->Allocate(freeMap, initialSize))
+					success = false;	// no space on disk for data
+			else {
+				success = true;
+			// everthing worked, flush all changes back to disk
+					hdr->WriteBack(sector);
+					directory->WriteBack(directoryFile);
+					freeMap->WriteBack(freeMapFile);
+			}
+				delete hdr;
+		}
         delete freeMap;
     }
     delete directory;

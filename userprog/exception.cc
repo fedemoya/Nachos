@@ -24,6 +24,9 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "nuestraSyscallImpl.h"
+
+void incrementarPC();
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -53,6 +56,9 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
+    int cont;
+    char *fileName = new char(100);
+
     if (which == SyscallException) {
     	switch (type) {
     		case SC_Halt :
@@ -60,15 +66,34 @@ ExceptionHandler(ExceptionType which)
     			DEBUG('a', "Shutdown, initiated by user program.\n");
     			interrupt->Halt();
     			break;
+    		case SC_Create :
+    			printf("Se ejecuto la llamada al sistema CREATE.\n");
+    			cont = 0;
+    			while(true){
+    				machine->ReadMem(machine->ReadRegister(4) + cont,1, (int *)&fileName[cont]);
+    				if (fileName[cont] == '\0')
+    				  break;
+    				cont++;
+    			}
+    			printf("fileName es: %s \n",fileName);
+    			nuestraCreate(fileName);
+    			incrementarPC();
+    			break;
     		case SC_Exec :
     			printf("Se ejecuto la llamada al sistema EXEC.\n");
-    			interrupt->Halt();
     			break;
     		default :
     			ASSERT(false);
     	}
+
     } else {
     	printf("Unexpected user mode exception %d %d\n", which, type);
     	ASSERT(false);
     }
+}
+
+void incrementarPC() {
+    int pcValue;
+    pcValue = machine->ReadRegister(PCReg);
+    machine->WriteRegister(PCReg,++pcValue);
 }
