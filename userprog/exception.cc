@@ -59,6 +59,8 @@ ExceptionHandler(ExceptionType which)
     int cont;
     char *fileName = new char(100);
 
+    NuestroFilesys *nuestroFilesys = new NuestroFilesys;
+
     if (which == SyscallException) {
     	switch (type) {
     		case SC_Halt :
@@ -76,7 +78,7 @@ ExceptionHandler(ExceptionType which)
     				cont++;
     			}
     			printf("fileName es: %s \n",fileName);
-    			nuestraCreate(fileName);
+    			nuestroFilesys->nuestraCreate(fileName);
     			incrementarPC();
     			break;
     		case SC_Exec :

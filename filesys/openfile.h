@@ -33,23 +33,23 @@ class OpenFile {
 
     int ReadAt(char *into, int numBytes, int position) { 
     		Lseek(file, position, 0); 
-		return ReadPartial(file, into, numBytes); 
-		}	
+    		return ReadPartial(file, into, numBytes);
+	}
     int WriteAt(const char *from, int numBytes, int position) { 
     		Lseek(file, position, 0); 
-		WriteFile(file, from, numBytes); 
-		return numBytes;
-		}	
+    		WriteFile(file, from, numBytes);
+    		return numBytes;
+	}
     int Read(char *into, int numBytes) {
 		int numRead = ReadAt(into, numBytes, currentOffset); 
 		currentOffset += numRead;
 		return numRead;
-    		}
+    }
     int Write(const char *from, int numBytes) {
 		int numWritten = WriteAt(from, numBytes, currentOffset); 
 		currentOffset += numWritten;
 		return numWritten;
-		}
+	}
 
     int Length() { Lseek(file, 0, 2); return Tell(file); }
     
