@@ -26,6 +26,7 @@
 #include "syscall.h"
 #include "nuestraSyscallImpl.h"
 
+void readStringFromRegister(char *buf);
 void incrementarPC();
 
 //----------------------------------------------------------------------
@@ -56,7 +57,6 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    int cont;
     char *fileName = new char(100);
 
     NuestroFilesys *nuestroFilesys = new NuestroFilesys;
@@ -64,25 +64,20 @@ ExceptionHandler(ExceptionType which)
     if (which == SyscallException) {
     	switch (type) {
     		case SC_Halt :
-    			printf("El Halt de test pasa por acá\n");
     			DEBUG('a', "Shutdown, initiated by user program.\n");
     			interrupt->Halt();
     			break;
     		case SC_Create :
-    			printf("Se ejecuto la llamada al sistema CREATE.\n");
-    			cont = 0;
-    			while(true){
-    				machine->ReadMem(machine->ReadRegister(4) + cont,1, (int *)&fileName[cont]);
-    				if (fileName[cont] == '\0')
-    				  break;
-    				cont++;
-    			}
-    			printf("fileName es: %s \n",fileName);
+    			/* para depuración */ printf("Se ejecuto CREATE\n");
+    			readStringFromRegister(fileName);
     			nuestroFilesys->nuestraCreate(fileName);
     			incrementarPC();
     			break;
-    		case SC_Exec :
-    			printf("Se ejecuto la llamada al sistema EXEC.\n");
+    		case SC_Open :
+    			/* para depuración */ printf("Se ejecuto OPEN\n");
+    			readStringFromRegister(fileName);
+				nuestroFilesys->nuestraOpen(fileName);
+				incrementarPC();
     			break;
     		default :
     			ASSERT(false);
@@ -92,6 +87,16 @@ ExceptionHandler(ExceptionType which)
     	printf("Unexpected user mode exception %d %d\n", which, type);
     	ASSERT(false);
     }
+}
+
+void readStringFromRegister(char *buf) {
+	int cont = 0;
+	while(true){
+		machine->ReadMem(machine->ReadRegister(4) + cont,1, (int *)&buf[cont]);
+		if (buf[cont] == '\0')
+		  break;
+		cont++;
+	}
 }
 
 void incrementarPC() {
