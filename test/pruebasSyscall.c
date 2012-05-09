@@ -4,6 +4,7 @@
 int
 main()
 {
-//    Create("holaMundo");
-    Open("holaMundo");
+    //~ Create("hola");
+	//~ Open("holaMundo");
+    Write ( "hola", 4, 12);
 }

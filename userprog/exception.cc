@@ -26,7 +26,7 @@
 #include "syscall.h"
 #include "nuestraSyscallImpl.h"
 
-void readStringFromRegister(char *buf);
+void readStringFromRegister(char *buf, int reg);
 void incrementarPC();
 
 //----------------------------------------------------------------------
@@ -56,8 +56,9 @@ void
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
-
     char *fileName = new char(100);
+	int size;
+    int openFileId;
 
     NuestroFilesys *nuestroFilesys = new NuestroFilesys;
 
@@ -69,15 +70,27 @@ ExceptionHandler(ExceptionType which)
     			break;
     		case SC_Create :
     			/* para depuración */ printf("Se ejecuto CREATE\n");
-    			readStringFromRegister(fileName);
+    			readStringFromRegister(fileName, 4);
     			nuestroFilesys->nuestraCreate(fileName);
+    			interrupt->Halt();
     			incrementarPC();
     			break;
     		case SC_Open :
     			/* para depuración */ printf("Se ejecuto OPEN\n");
-    			readStringFromRegister(fileName);
+    			readStringFromRegister(fileName,4);
 				nuestroFilesys->nuestraOpen(fileName);
 				incrementarPC();
+    		case SC_Write :
+    			printf("Se ejecuto la llamada al sistema WRITE.\n");
+    			readStringFromRegister(fileName,4);printf("buffer: %s \n",fileName);
+    			size = machine->ReadRegister(5);printf("size: %d \n",size);
+    			openFileId = machine->ReadRegister(6);printf("openFileId: %d \n",openFileId);
+				interrupt->Halt();
+    			//nuestroFilesys->nuestraWrite(fileName,size,fileId);
+    			incrementarPC();
+    			break;
+    		case SC_Exec :
+    			printf("Se ejecuto la llamada al sistema EXEC.\n");
     			break;
     		default :
     			ASSERT(false);
@@ -89,10 +102,10 @@ ExceptionHandler(ExceptionType which)
     }
 }
 
-void readStringFromRegister(char *buf) {
+void readStringFromRegister(char *buf, int reg) {
 	int cont = 0;
 	while(true){
-		machine->ReadMem(machine->ReadRegister(4) + cont,1, (int *)&buf[cont]);
+		machine->ReadMem(machine->ReadRegister(reg) + cont,1, (int *)&buf[cont]);
 		if (buf[cont] == '\0')
 		  break;
 		cont++;
