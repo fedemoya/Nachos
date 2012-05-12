@@ -29,7 +29,8 @@ class Scheduler {
     void Print();			// Print contents of ready list
     
   private:
-    List<Thread*> *readyList;  		// queue of threads that are ready to run,
+    List<Thread*> **readyList;
+       void ReadyToRun(Thread* thread,PrioridadHilo prioridad);	// Thread can be dispatched.
 					// but not running
 };
 
