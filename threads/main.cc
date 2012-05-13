@@ -92,7 +92,7 @@ main(int argc, char **argv)
 #ifdef THREADS
 //    ThreadTest();
 //    MessagesTest();
-    JoinTest();
+//    JoinTest();
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
