@@ -100,19 +100,19 @@ Machine::ReadMem(int addr, int size, int *value)
     }
     switch (size) {
       case 1:
-	data = machine->mainMemory[physicalAddress];
-	*value = data;
-	break;
+		data = machine->mainMemory[physicalAddress];
+		*value = data;
+		break;
 	
       case 2:
-	data = *(unsigned short *) &machine->mainMemory[physicalAddress];
-	*value = ShortToHost(data);
-	break;
+		data = *(unsigned short *) &machine->mainMemory[physicalAddress];
+		*value = ShortToHost(data);
+		break;
 	
       case 4:
-	data = *(unsigned int *) &machine->mainMemory[physicalAddress];
-	*value = WordToHost(data);
-	break;
+		data = *(unsigned int *) &machine->mainMemory[physicalAddress];
+		*value = WordToHost(data);
+		break;
 
       default: ASSERT(false);
     }

@@ -171,8 +171,9 @@ threadtest.o: ../threads/threadtest.cc ../threads/copyright.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
  /usr/include/string.h ../threads/thread.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../threads/utility.h
- pr3test.o: ../threads/pr3test.cc ../threads/copyright.h \
+ ../machine/stats.h ../machine/timer.h ../threads/utility.h \
+ ../threads/synch.h
+pr3test.o: ../threads/pr3test.cc ../threads/copyright.h \
  ../threads/system.h ../threads/utility.h ../machine/sysdep.h \
  ../threads/copyright.h /usr/include/stdlib.h /usr/include/features.h \
  /usr/include/bits/predefs.h /usr/include/sys/cdefs.h \
@@ -193,7 +194,8 @@ threadtest.o: ../threads/threadtest.cc ../threads/copyright.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
  /usr/include/string.h ../threads/thread.h ../threads/scheduler.h \
  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
- ../machine/stats.h ../machine/timer.h ../threads/utility.h
+ ../machine/stats.h ../machine/timer.h ../threads/utility.h \
+ ../threads/synch.h
 interrupt.o: ../machine/interrupt.cc ../threads/copyright.h \
  ../machine/interrupt.h ../threads/list.h ../threads/copyright.h \
  ../threads/utility.h ../machine/sysdep.h /usr/include/stdlib.h \

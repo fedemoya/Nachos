@@ -181,10 +181,6 @@ Messages::~Messages(){
 }
 
 
-Port Messages::getNextPortNumber(){
-	return portNumber++;
-}
-
 void Messages::Send(Port port, int senderMsg) {
 	lock->Acquire();
 	Iterator<Slot*> *iterator = queue->GetIterator();
@@ -218,19 +214,15 @@ void Messages::Receive(Port port, int *receiverBuf) {
 	lock->Acquire();
 	Iterator<Slot*> *iterator = queue->GetIterator();
 	while(iterator->HasNext()){
-//		printf("Entro while\n");
 		 Slot *slot = iterator->Next();
 		if(slot->port == port){
-//			printf("Entro primer if\n");
 			if(!slot->senderMsgQueue->IsEmpty()){
-//				printf("Entro segundo if\n");
 				int senderMsg = slot->senderMsgQueue->Remove();
 				*receiverBuf = senderMsg;
 				slot->condition->Signal();
 				lock->Release();
 				return;
 			} else {
-//				printf("Entro segundo else\n");
 				slot->receiverBufQueue->Append(receiverBuf);
 				slot->condition->Wait();
 				lock->Release();

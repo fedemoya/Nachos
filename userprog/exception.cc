@@ -24,6 +24,11 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "nuestraSyscallImpl.h"
+
+void readStringFromRegister(char *buf, int reg);
+int readIntFromRegister(int reg);
+void incrementarPC();
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -53,11 +58,73 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
-    } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(false);
+    char *buffer = new char(100);
+    int openFileId, size;
+
+    static NuestroFilesys *nuestroFilesys = NULL;
+    if(nuestroFilesys == NULL) {
+    	nuestroFilesys = new NuestroFilesys;
     }
+
+    if (which == SyscallException) {
+    	switch (type) {
+    		case SC_Halt :
+    			DEBUG('a', "Shutdown, initiated by user program.\n");
+    			interrupt->Halt();
+    			break;
+    		case SC_Create :
+    			/* para depuración */ printf("Se ejecuto CREATE\n");
+    			readStringFromRegister(buffer, 4);
+    			nuestroFilesys->nuestraCreate(buffer);
+    			incrementarPC();
+    			break;
+    		case SC_Open :
+    			/* para depuración */ printf("Se ejecuto OPEN\n");
+    			readStringFromRegister(buffer, 4);
+				openFileId = nuestroFilesys->nuestraOpen(buffer);
+				/* para depuración */ printf("Open: openFileId %d\n", openFileId);
+				machine->WriteRegister(2, openFileId);
+				incrementarPC();
+    			break;
+    		case SC_Read :
+				/* para depuración */ printf("Se ejecuto READ\n");
+				readStringFromRegister(buffer, 4);
+				size = machine->ReadRegister(5);
+				openFileId = machine->ReadRegister(6);
+				nuestroFilesys->nuestraRead(buffer, size, openFileId);
+				incrementarPC();
+				break;
+    		case SC_Write :
+    			/* para depuración */ printf("Se ejecuto WRITE\n");
+				readStringFromRegister(buffer, 4);
+				/* para depuración */ printf("buffer %s\n", buffer);
+				size = machine->ReadRegister(5);
+				/* para depuración */ printf("size %d\n", size);
+				openFileId = machine->ReadRegister(6);
+				/* para depuración */ printf("openFileId %d\n", openFileId);
+				nuestroFilesys->nuestraWrite(buffer, size, openFileId);
+				incrementarPC();
+				break;
+    		default :
+    			ASSERT(false);
+    	}
+
+    } else {
+    	printf("Unexpected user mode exception %d %d\n", which, type);
+    	ASSERT(false);
+    }
+}
+
+void readStringFromRegister(char *buf, int reg) {
+	int cont = 0;
+	while(true){
+		machine->ReadMem(machine->ReadRegister(reg) + cont,1, (int *)&buf[cont]);
+		if (buf[cont] == '\0')
+		  break;
+		cont++;
+	}
+}
+
+void incrementarPC() {
+    machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
 }

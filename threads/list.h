@@ -21,6 +21,7 @@ class ListElement {
      ListElement(Item itemPtr, int sortKey);	// initialize a list element
 
      ListElement *next;		// next element on list, NULL if this is the last
+     ListElement *previous;
      int key;		    	// priority, for a sorted list
      Item item; 	    	// item on the list
 };
@@ -39,6 +40,7 @@ ListElement<Item>::ListElement(Item anItem, int sortKey)
      item = anItem;
      key = sortKey;
      next = NULL;	// assume we'll put it at the end of the list
+     previous = NULL;
 }
 
 //----------------------------------------------------------------------
@@ -51,6 +53,9 @@ class Iterator {
 		~Iterator();
 		bool HasNext();
 		Item Next();
+		// Saca de la lista el elemento sobre el que
+		// esta parado el iterador.
+		Item Remove();
 	private:
 		ListElement<Item> *nextElement;
 		bool hasNext;
@@ -69,10 +74,30 @@ bool Iterator<Item>::HasNext(){
 
 template <class Item>
 Item Iterator<Item>::Next(){
+	ASSERT(nextElement != NULL);
 	ListElement<Item> *element = nextElement;
 	nextElement = nextElement->next;
 	hasNext = (nextElement != NULL);
 	return element->item;
+}
+
+template <class Item>
+Item Iterator<Item>::Remove(){
+	ASSERT(nextElement != NULL);
+	ListElement<Item> *element = nextElement;
+	nextElement = element->next;
+	ListElement<Item> *previousElement = element->previous;
+	if(previousElement != NULL){
+		previousElement->next = nextElement;
+	}
+	if(nextElement != NULL){
+		nextElement->previous = previousElement;
+	} else {
+		hasNext = false;
+	}
+	Item thing = element->item;
+	delete element;
+	return thing;
 }
 
 // The following class defines a "list" -- a singly linked list of
@@ -158,11 +183,12 @@ List<Item>::Append(Item item)
     ListNode *element = new ListNode(item, 0);
 
     if (IsEmpty()) {		// list is empty
-	first = element;
-	last = element;
+    	first = element;
+    	last = element;
     } else {			// else put it after last
-	last->next = element;
-	last = element;
+    	last->next = element;
+    	element->previous = last;
+    	last = element;
     }
 }
 
@@ -189,6 +215,7 @@ List<Item>::Prepend(Item item)
 	last = element;
     } else {			// else put it before first
 	element->next = first;
+	first->previous->next;
 	first = element;
     }
 }
@@ -310,6 +337,7 @@ List<Item>::SortedRemove(int *keyPtr)
 	last = NULL;
     } else {
         first = element->next;
+        first->previous = NULL;
     }
     if (keyPtr != NULL)
         *keyPtr = element->key;

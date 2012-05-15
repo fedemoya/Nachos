@@ -46,6 +46,7 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
 
+
 #define MAIN
 #include "copyright.h"
 #undef MAIN
@@ -91,7 +92,7 @@ main(int argc, char **argv)
 #ifdef THREADS
 //    ThreadTest();
 //    MessagesTest();
-    JoinTest();
+//    JoinTest();
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {

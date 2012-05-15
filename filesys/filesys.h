@@ -39,18 +39,18 @@
 #include "openfile.h"
 
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as 
-				// calls to UNIX, until the real file system
-				// implementation is available
+							// calls to UNIX, until the real file system
+							// implementation is available
 class FileSystem {
   public:
     FileSystem(bool format) {}
 
     bool Create(const char *name, int initialSize) { 
-	int fileDescriptor = OpenForWrite(name);
+    	int fileDescriptor = OpenForWrite(name);
 
-	if (fileDescriptor == -1) return false;
-	Close(fileDescriptor); 
-	return true; 
+    	if (fileDescriptor == -1) return false;
+    	Close(fileDescriptor);
+    	return true;
 	}
 
     OpenFile* Open(const char *name) {
@@ -58,7 +58,7 @@ class FileSystem {
 
 	  if (fileDescriptor == -1) return NULL;
 	  return new OpenFile(fileDescriptor);
-      }
+    }
 
     bool Remove(const char *name) { return Unlink(name) == 0; }
 
