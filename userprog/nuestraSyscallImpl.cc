@@ -71,6 +71,8 @@ void NuestroFilesys::nuestraWrite(char *buffer, int size, OpenFileId id) {
 		openFileData = iter->Next();
 		if(openFileData->id == id){
 			openFileData->openFile->Write(buffer, size);
+			printf("Supuestamente se escribio %s en el archivo %d\n",buffer, id);
+			return;
 		}
 	}
 	printf("El identificador de archivo %d no corresponde a un archivo abierto.\n", id);

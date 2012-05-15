@@ -59,9 +59,12 @@ ExceptionHandler(ExceptionType which)
     int type = machine->ReadRegister(2);
 
     char *buffer = new char(100);
-    int openFileId;
-    int size;
-    NuestroFilesys *nuestroFilesys = new NuestroFilesys;
+    int openFileId, size;
+
+    static NuestroFilesys *nuestroFilesys = NULL;
+    if(nuestroFilesys == NULL) {
+    	nuestroFilesys = new NuestroFilesys;
+    }
 
     if (which == SyscallException) {
     	switch (type) {
@@ -78,14 +81,16 @@ ExceptionHandler(ExceptionType which)
     		case SC_Open :
     			/* para depuración */ printf("Se ejecuto OPEN\n");
     			readStringFromRegister(buffer, 4);
-				nuestroFilesys->nuestraOpen(buffer);
+				openFileId = nuestroFilesys->nuestraOpen(buffer);
+				/* para depuración */ printf("Open: openFileId %d\n", openFileId);
+				machine->WriteRegister(2, openFileId);
 				incrementarPC();
     			break;
     		case SC_Read :
 				/* para depuración */ printf("Se ejecuto READ\n");
 				readStringFromRegister(buffer, 4);
-				size = readIntFromRegister(5);
-				openFileId = readIntFromRegister(6);
+				size = machine->ReadRegister(5);
+				openFileId = machine->ReadRegister(6);
 				nuestroFilesys->nuestraRead(buffer, size, openFileId);
 				incrementarPC();
 				break;
@@ -93,8 +98,10 @@ ExceptionHandler(ExceptionType which)
     			/* para depuración */ printf("Se ejecuto WRITE\n");
 				readStringFromRegister(buffer, 4);
 				/* para depuración */ printf("buffer %s\n", buffer);
-				size = readIntFromRegister(5);
-				openFileId = readIntFromRegister(6);
+				size = machine->ReadRegister(5);
+				/* para depuración */ printf("size %d\n", size);
+				openFileId = machine->ReadRegister(6);
+				/* para depuración */ printf("openFileId %d\n", openFileId);
 				nuestroFilesys->nuestraWrite(buffer, size, openFileId);
 				incrementarPC();
 				break;
@@ -116,12 +123,6 @@ void readStringFromRegister(char *buf, int reg) {
 		  break;
 		cont++;
 	}
-}
-
-int readIntFromRegister(int reg) {
-		int *value;
-		machine->ReadMem(machine->ReadRegister(reg),4, value); // los enteros se representan con 4 bytes
-		return *value;
 }
 
 void incrementarPC() {
