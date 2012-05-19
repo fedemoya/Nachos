@@ -94,7 +94,7 @@ Semaphore::V()
 
     thread = queue->Remove();
     if (thread != NULL)	   // make thread ready, consuming the V immediately
-	scheduler->ReadyToRun(thread);
+		scheduler->ReadyToRun(thread);
     value++;
     interrupt->SetLevel(oldLevel);
 }
@@ -103,14 +103,33 @@ Semaphore::V()
 // Note -- without a correct implementation of Condition::Wait(), 
 // the test case in the network assignment won't work!
 Lock::Lock(const char* debugName) {
+	Constructor(debugName,PrioridadMinima);
+}
+Lock::Lock(const char* debugName, PrioridadHilo prioriRecurso) {
+	Constructor(debugName,prioriRecurso);
+}
+
+void Lock::Constructor(const char* debugName, PrioridadHilo prioriRecurso) {
 	name = debugName;
 	s = new Semaphore(debugName, 1);
+	prioridadRecurso = prioriRecurso;
+	//Para evitar la inversion de prioridades, cada hilo que adquiera el cerrojo
+	//se le sube la priorirdad en caso de que la suya sea menor que la del recurso
+	if (currentThread->getPrioridad() < prioriRecurso) {
+		currentThread->setPrioridad(prioriRecurso);
+	}
 }
+
 Lock::~Lock() {
 	delete s;
 }
 void Lock::Acquire() {
 	s->P();
+	//Para evitar la inversion de prioridades, cada hilo que adquiera el cerrojo
+	//se le sube la priorirdad en caso de que la suya sea menor que la del recurso
+	if (currentThread->getPrioridad() < prioridadRecurso) {
+		currentThread->setPrioridad(prioridadRecurso);
+	}
 }
 void Lock::Release() {
 	s->V();
