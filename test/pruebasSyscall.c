@@ -6,6 +6,7 @@ void prueba3(int);
 
 int main()
 {
+//	prueba1();
 //	prueba2();
 	prueba3(5);
     return 0;

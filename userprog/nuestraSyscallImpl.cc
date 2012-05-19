@@ -58,7 +58,7 @@ void NuestroFilesys::nuestraCreate(char *name) {
 
 
 OpenFileId NuestroFilesys::nuestraOpen(char *name) {
-	int ultimoId = 2;
+	int ultimoId = 3;
 	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
 	while(iter->HasNext()){
 		OpenFileData* openFileData = iter->Next();
@@ -94,7 +94,9 @@ int NuestroFilesys::nuestraRead(char *buffer, int size, OpenFileId id) {
 		while(i<size){
 			buffer[i] = console->GetChar();
 			i++;
+			/* debug */ printf("%c", buffer[i]);
 		}
+
 		return size;
 	}
 	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
