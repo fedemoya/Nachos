@@ -29,14 +29,7 @@
 
 Scheduler::Scheduler()
 { 
-	//--{smb 01/05/2012
-    //readyList = new (List<Thread*>*);
-	readyList = (List<Thread*>**)malloc(Prioridad_MaxValue*sizeof(List<Thread*>*));
-	for(int i= PrioridadMinima;i<Prioridad_MaxValue;i++){
-		readyList[i] = new List<Thread*>;
-		//~ printf("prioridad %d \n",i);
-	}
-    //--}
+    readyList = new List<Thread*>; 
 } 
 
 //----------------------------------------------------------------------
@@ -46,13 +39,7 @@ Scheduler::Scheduler()
 
 Scheduler::~Scheduler()
 { 
-	   //--{smb 01/05/2012
-	    //delete readyList;
-		for(int i= PrioridadMinima;i<Prioridad_MaxValue;i++){
-			delete readyList[i];
-		}
-		delete readyList;
-		//--}
+    delete readyList; 
 } 
 
 //----------------------------------------------------------------------
@@ -63,23 +50,13 @@ Scheduler::~Scheduler()
 //	"thread" is the thread to be put on the ready list.
 //----------------------------------------------------------------------
 
-//--{smb 01/05/2012
 void
-Scheduler::ReadyToRun (Thread *thread){
-
-	this->ReadyToRun(thread,thread->getPrioridad());	// Thread can be dispatched
-}
-
-
-void
-Scheduler::ReadyToRun(Thread* thread,PrioridadHilo prioridad)	// Thread can be dispatched.
+Scheduler::ReadyToRun (Thread *thread)
 {
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
-    thread->setStatus(READY);
-//    readyList->Append(thread);
-    readyList[prioridad]->Append(thread);
 
-//--}
+    thread->setStatus(READY);
+    readyList->Append(thread);
 }
 
 //----------------------------------------------------------------------
@@ -93,19 +70,7 @@ Scheduler::ReadyToRun(Thread* thread,PrioridadHilo prioridad)	// Thread can be d
 Thread *
 Scheduler::FindNextToRun ()
 {
-	//--{smb 01/05/2012
-    //return readyList->Remove();
-    Thread * thread;
-    for(int i= Prioridad_MaxValue - 1;i > PrioridadMinima;i--){
-    	if(!readyList[i]->IsEmpty()) {
-			thread = readyList[i]->Remove();
-			return thread;
-		}
-	}
-
-	thread = readyList[PrioridadMinima]->Remove();
-	return thread;
-	//--
+    return readyList->Remove();
 }
 
 //----------------------------------------------------------------------
@@ -184,7 +149,5 @@ void
 Scheduler::Print()
 {
     printf("Ready list contents:\n");
-    for(int i= PrioridadMinima;i<Prioridad_MaxValue;i++){
-    		readyList[i]->Apply(ThreadPrint);
-    }
+    readyList->Apply(ThreadPrint);
 }

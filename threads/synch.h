@@ -73,7 +73,6 @@ class Lock {
   public:
   // Constructor: inicia el cerrojo como libre
   Lock(const char* debugName);
-  Lock(const char* debugName, PrioridadHilo prioriRecurso);
 
   ~Lock();          // destructor
   const char* getName() { return name; }	// para depuraci�n
@@ -90,10 +89,6 @@ class Lock {
     const char* name;				// para depuraci�n
     // a�adir aqu� otros campos que sean necesarios
     Semaphore *s;
-    PrioridadHilo prioridadRecurso;
-    
-    private:
-    void Constructor(const char* debugName, PrioridadHilo prioriRecurso);
 };
 
 //  La siguiente clase define una "variable condici�n". Una variable condici�n

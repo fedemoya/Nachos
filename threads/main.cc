@@ -55,7 +55,6 @@
 
 
 // External functions used by this file
-void inversionPrioridades();
 void JoinTest();
 void MessagesTest();
 void ThreadTest();
@@ -92,7 +91,7 @@ main(int argc, char **argv)
 #ifdef THREADS
 //    ThreadTest();
 //    MessagesTest();
-    inversionPrioridades();
+    JoinTest();
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
