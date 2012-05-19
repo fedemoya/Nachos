@@ -1,14 +1,43 @@
 #include "syscall.h"
 
+void prueba1();
+void prueba2();
+void prueba3(int);
+
 int main()
 {
+//	prueba2();
+	prueba3(5);
+    return 0;
+}
+
+// Escribe "ABC" a la consola.
+void prueba1(){
+	char algoParaEscribir[100];
+	algoParaEscribir[0] = 'A';
+	algoParaEscribir[1] = 'B';
+	algoParaEscribir[2] = 'C';
+	Write(algoParaEscribir, 3, ConsoleOutput);
+}
+
+// Crea y abre un archivo y escribe "ABC" en el archivo abierto
+void prueba2(){
 	int id;
 	char algoParaEscribir[100];
-    Create("Ema");
-    id = (int) Open("Ema");
-    algoParaEscribir[0] = 'R';
-    algoParaEscribir[1] = 'C';
-    algoParaEscribir[2] = 'O';
-    Write(algoParaEscribir, 3, id);
-    return 0;
+	Create("prueba2");
+	id = (int) Open("prueba2");
+	algoParaEscribir[0] = 'A';
+	algoParaEscribir[1] = 'B';
+	algoParaEscribir[2] = 'C';
+	Write(algoParaEscribir, 3, id);
+}
+
+// Lee de la consola y escribe un archivo.
+void prueba3(int size){
+	char buffer[100];
+	int id;
+	Read(buffer, size, ConsoleInput); // Lee size caracteres de la consola.
+	Create("prueba3");
+	id = (int) Open("prueba3");
+	Write(buffer, size, id);
 }

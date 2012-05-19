@@ -11,7 +11,30 @@
 #define NUESTRASYSCALLIMPL_H_
 
 #include "filesys.h"
+#include "console.h"
+#include "synch.h"
 #include "list.h"
+
+/* when an address space starts up, it has two open files, representing
+ * keyboard input and display output (in UNIX terms, stdin and stdout).
+ * Read and Write can be used directly on these, without first opening
+ * the console device.
+ */
+#define ConsoleInput	0
+#define ConsoleOutput	1
+
+class SynchConsole {
+  public:
+    SynchConsole(const char *readFile, const char *writeFile);
+    ~SynchConsole();
+
+    void PutChar(char ch);
+    char GetChar();
+
+  private:
+    Console *console;
+    Lock *lock;
+};
 
 typedef int OpenFileId;
 
@@ -34,6 +57,7 @@ class NuestroFilesys {
 
 	private:
 		List<OpenFileData*>* openFiles;
+		SynchConsole *console;
 };
 
 #endif /* NUESTRASYSCALLIMPL_H_ */

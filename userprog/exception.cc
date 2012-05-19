@@ -82,7 +82,6 @@ ExceptionHandler(ExceptionType which)
     			/* para depuración */ printf("Se ejecuto OPEN\n");
     			readStringFromRegister(buffer, 4);
 				openFileId = nuestroFilesys->nuestraOpen(buffer);
-				/* para depuración */ printf("Open: openFileId %d\n", openFileId);
 				machine->WriteRegister(2, openFileId);
 				incrementarPC();
     			break;
@@ -97,11 +96,8 @@ ExceptionHandler(ExceptionType which)
     		case SC_Write :
     			/* para depuración */ printf("Se ejecuto WRITE\n");
 				readStringFromRegister(buffer, 4);
-				/* para depuración */ printf("buffer %s\n", buffer);
 				size = machine->ReadRegister(5);
-				/* para depuración */ printf("size %d\n", size);
 				openFileId = machine->ReadRegister(6);
-				/* para depuración */ printf("openFileId %d\n", openFileId);
 				nuestroFilesys->nuestraWrite(buffer, size, openFileId);
 				incrementarPC();
 				break;

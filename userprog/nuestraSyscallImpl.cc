@@ -7,8 +7,45 @@
 #include "system.h"
 #include "nuestraSyscallImpl.h"
 
+static Semaphore *readAvail;
+static Semaphore *writeDone;
+
+// Callbacks para que la consola nos avise cuando
+// hay caracteres para leer (con GetChar) o cuando pudo escribir
+// el caracter que le pasamos (con PutChar).
+static void ReadAvailHandler(void* arg) { readAvail->V(); };
+static void WriteDoneHandler(void* arg) { writeDone->V(); };
+
+SynchConsole::SynchConsole(const char *readFile, const char *writeFile) {
+	console = new Console (readFile, writeFile, ReadAvailHandler, WriteDoneHandler, NULL);
+	readAvail = new Semaphore("read avail", 0);
+    writeDone = new Semaphore("write done", 0);
+	lock = new Lock("SynchConsole Lock");
+}
+
+SynchConsole::~SynchConsole() {
+	delete console;
+	delete lock;
+}
+
+char SynchConsole::GetChar() {
+	lock->Acquire();
+	readAvail->P();
+	char ch = console->GetChar();
+	lock->Release();
+	return ch;
+}
+
+void SynchConsole::PutChar(char ch) {
+	lock->Acquire();
+	console->PutChar(ch);
+	writeDone->P();
+	lock->Release();
+}
+
 NuestroFilesys::NuestroFilesys() {
 	openFiles = new List<OpenFileData*>;
+	console = new SynchConsole(NULL,NULL); // al pasarle (NULL, NULL) lee y escribe en la consola unix
 }
 
 NuestroFilesys::~NuestroFilesys() {
@@ -21,7 +58,7 @@ void NuestroFilesys::nuestraCreate(char *name) {
 
 
 OpenFileId NuestroFilesys::nuestraOpen(char *name) {
-	int ultimoId = 0;
+	int ultimoId = 2;
 	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
 	while(iter->HasNext()){
 		OpenFileData* openFileData = iter->Next();
@@ -52,6 +89,14 @@ void NuestroFilesys::nuestraClose(char *name) {
 }
 
 int NuestroFilesys::nuestraRead(char *buffer, int size, OpenFileId id) {
+	if(id == ConsoleInput) {
+		int i = 0;
+		while(i<size){
+			buffer[i] = console->GetChar();
+			i++;
+		}
+		return size;
+	}
 	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
 	OpenFileData* openFileData;
 	while(iter->HasNext()){
@@ -65,13 +110,20 @@ int NuestroFilesys::nuestraRead(char *buffer, int size, OpenFileId id) {
 }
 
 void NuestroFilesys::nuestraWrite(char *buffer, int size, OpenFileId id) {
+	if(id == ConsoleOutput) {
+		int i = 0;
+		while(i<size){
+			console->PutChar(buffer[i]);
+			i++;
+		}
+		return;
+	}
 	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
 	OpenFileData* openFileData;
 	while(iter->HasNext()){
 		openFileData = iter->Next();
 		if(openFileData->id == id){
 			openFileData->openFile->Write(buffer, size);
-			printf("Supuestamente se escribio %s en el archivo %d\n",buffer, id);
 			return;
 		}
 	}
