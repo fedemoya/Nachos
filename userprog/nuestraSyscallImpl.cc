@@ -94,9 +94,7 @@ int NuestroFilesys::nuestraRead(char *buffer, int size, OpenFileId id) {
 		while(i<size){
 			buffer[i] = console->GetChar();
 			i++;
-			/* debug */ printf("%c", buffer[i]);
 		}
-
 		return size;
 	}
 	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
