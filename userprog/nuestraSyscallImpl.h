@@ -51,7 +51,7 @@ class NuestroFilesys {
 
 		void nuestraCreate(char *name);
 		OpenFileId nuestraOpen(char *name);
-		void nuestraClose(char *name);
+		void nuestraClose(OpenFileId id);
 		int nuestraRead(char *buffer, int size, OpenFileId id);
 		void nuestraWrite(char *buffer, int size, OpenFileId id);
 

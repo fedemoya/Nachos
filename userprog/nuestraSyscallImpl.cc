@@ -77,15 +77,23 @@ OpenFileId NuestroFilesys::nuestraOpen(char *name) {
 	return openFileData->id;
 }
 
-void NuestroFilesys::nuestraClose(char *name) {
-//	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
-//	while(iter->HasNext()){
-//		OpenFileData* openFileData = iter->Next();
-//		if(strcmp(name, openFileData->name) == 0){
-//			//Borrar el archivo de la lista de archivos abiertos.
-//		}
-//		ultimoId = openFileData->id;
-//	}
+void NuestroFilesys::nuestraClose(OpenFileId id) {
+	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
+
+	OpenFileData* openFileData = iter->Next();
+	//si es el primer elemento de la lista lo borro con el metodo remove de lista
+	if(iter->HasNext() && openFileData->id == id){
+		openFiles->Remove();
+	}
+	else {
+		//sino es el primer elementos, busco cual es el elemento con el iterador y lo borro
+		while(iter->HasNext()){
+			openFileData = iter->Next();
+			if(openFileData->id == id){
+				iter->Remove();
+			}
+		}
+	}
 }
 
 int NuestroFilesys::nuestraRead(char *buffer, int size, OpenFileId id) {
