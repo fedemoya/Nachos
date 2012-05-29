@@ -105,6 +105,12 @@ ExceptionHandler(ExceptionType which)
 				nuestroFilesys->nuestraWrite(chars, size, openFileId);
 				incrementarPC();
 				break;
+    		case SC_Close :
+    			/* para depuración */ printf("Se ejecuto CLOSE\n");
+    			openFileId = machine->ReadRegister(4);
+    			nuestroFilesys->nuestraClose(openFileId);
+				incrementarPC();
+				break;
     		default :
     			ASSERT(false);
     	}

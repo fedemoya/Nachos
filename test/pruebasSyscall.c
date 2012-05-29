@@ -8,7 +8,8 @@ int main()
 {
 //	prueba1();
 //	prueba2();
-	prueba3(5);
+//	prueba3(5);
+	pruebaClose();
     return 0;
 }
 
@@ -41,4 +42,12 @@ void prueba3(int size){
 	Create("prueba3");
 	id = (int) Open("prueba3");
 	Write(buffer, size, id);
+}
+
+// Crea, abre el archivo y luego lo cierra
+void pruebaClose(){
+	int id;
+	Create("prueba4");
+	id = (int) Open("prueba4");
+	Close(id);
 }
