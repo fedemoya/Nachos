@@ -26,7 +26,7 @@
 #include "syscall.h"
 #include "nuestraSyscallImpl.h"
 
-void readStringFromRegister(char *buf, int reg);
+void readStringFromMem(char *buf, int reg);
 bool writeCharsToMem(char *str, int size, int addr);
 void incrementarPC();
 
@@ -75,13 +75,13 @@ ExceptionHandler(ExceptionType which)
     			break;
     		case SC_Create :
     			/* para depuración */ printf("Se ejecuto CREATE\n");
-    			readStringFromRegister(chars, 4);
+    			readStringFromMem(chars, 4);
     			nuestroFilesys->nuestraCreate(chars);
     			incrementarPC();
     			break;
     		case SC_Open :
     			/* para depuración */ printf("Se ejecuto OPEN\n");
-    			readStringFromRegister(chars, 4);
+    			readStringFromMem(chars, 4);
 				openFileId = nuestroFilesys->nuestraOpen(chars);
 				machine->WriteRegister(2, openFileId);
 				incrementarPC();
@@ -99,7 +99,7 @@ ExceptionHandler(ExceptionType which)
 				break;
     		case SC_Write :
     			/* para depuración */ printf("Se ejecuto WRITE\n");
-				readStringFromRegister(chars, 4);
+				readStringFromMem(chars, 4);
 				size = machine->ReadRegister(5);
 				openFileId = machine->ReadRegister(6);
 				nuestroFilesys->nuestraWrite(chars, size, openFileId);
@@ -117,7 +117,7 @@ ExceptionHandler(ExceptionType which)
     }
 }
 
-void readStringFromRegister(char *str, int reg) {
+void readStringFromMem(char *str, int reg) {
 	int cont = 0;
 	while(true){
 		machine->ReadMem(machine->ReadRegister(reg) + cont,1, (int *)&str[cont]);
