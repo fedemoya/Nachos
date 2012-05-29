@@ -60,4 +60,16 @@ class NuestroFilesys {
 		SynchConsole *console;
 };
 
+typedef int SpaceId;
+
+typedef struct {
+	SpaceId key;
+	AddrSpace *value;
+} SpaceData;
+
+List<SpaceData*>* spaceList;
+int nextSpaceId=1;
+
+SpaceId nuestraExec(char *name);
+
 #endif /* NUESTRASYSCALLIMPL_H_ */

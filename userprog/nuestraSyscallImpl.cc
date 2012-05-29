@@ -138,3 +138,37 @@ void NuestroFilesys::nuestraWrite(char *buffer, int size, OpenFileId id) {
 	printf("El identificador de archivo %d no corresponde a un archivo abierto.\n", id);
 	ASSERT(false);
 }
+
+SpaceId nuestraExec(char *name) {
+//    OpenFile *executable = fileSystem->Open(name);
+//    AddrSpace *space;
+//	static Thread* newThread;
+//
+//    if (executable == NULL) {
+//		printf("Unable to open file %s\n", filename);
+//		return;
+//    }
+//    if (spaceList ==NULL) {
+//    	spaceList = new List<SpaceData*>;
+//    }
+//
+//    space = new AddrSpace(executable);
+//    SpaceData *spaceData = new SpaceData;
+//
+//    spaceData->key = nextSpaceId++;
+//    spaceData->value = space;
+//    spaceList->Append(spaceData);
+//
+//    newThread = new Thread (name);
+//
+//    //currentThread->space = space;
+//
+//    delete executable;			// close file
+//
+//    space->InitRegisters();		// set the initial register values
+//    space->RestoreState();		// load page table register
+//
+//    machine->Run();			// jump to the user progam
+//    ASSERT(false);			// mac
+}
+
