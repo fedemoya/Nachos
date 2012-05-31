@@ -9,7 +9,8 @@ int main()
 //	prueba1();
 //	prueba2();
 //	prueba3(5);
-	pruebaClose();
+	//pruebaClose();
+	pruebaExec();
     return 0;
 }
 
@@ -62,4 +63,8 @@ void pruebaClose(){
 	Write(algoParaEscribir, 3, ida);
 	Close(ida);Close(idb);
 	Write(algoParaEscribir, 3, ida);
+}
+
+void pruebaExec(){
+	Exec("/home/emanuel/eclipse/workspace/Nachos/test/halt");
 }
