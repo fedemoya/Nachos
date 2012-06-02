@@ -9,7 +9,8 @@ int main()
 //	prueba1();
 //	prueba2();
 //	prueba3(5);
-	pruebaClose();
+	//pruebaClose();
+	pruebaExec();
     return 0;
 }
 
@@ -46,8 +47,24 @@ void prueba3(int size){
 
 // Crea, abre el archivo y luego lo cierra
 void pruebaClose(){
-	int id;
-	Create("prueba4");
-	id = (int) Open("prueba4");
-	Close(id);
+	int ida,idb;
+	char algoParaEscribir[100];
+
+	Create("prueba4a");
+	Create("prueba4b");
+
+	ida = (int) Open("prueba4a");
+	idb = (int) Open("prueba4b");
+
+	algoParaEscribir[0] = 'A';
+	algoParaEscribir[1] = 'B';
+	algoParaEscribir[2] = 'C';
+
+	Write(algoParaEscribir, 3, ida);
+	Close(ida);Close(idb);
+	Write(algoParaEscribir, 3, ida);
+}
+
+void pruebaExec(){
+	Exec("/home/emanuel/eclipse/workspace/Nachos/test/halt");
 }

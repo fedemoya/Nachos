@@ -60,4 +60,8 @@ class NuestroFilesys {
 		SynchConsole *console;
 };
 
+typedef int SpaceId;
+
+SpaceId nuestraExec(char *name);
+
 #endif /* NUESTRASYSCALLIMPL_H_ */
