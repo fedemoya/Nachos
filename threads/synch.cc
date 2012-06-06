@@ -113,11 +113,6 @@ void Lock::Constructor(const char* debugName, PrioridadHilo prioriRecurso) {
 	name = debugName;
 	s = new Semaphore(debugName, 1);
 	prioridadRecurso = prioriRecurso;
-	//Para evitar la inversion de prioridades, cada hilo que adquiera el cerrojo
-	//se le sube la priorirdad en caso de que la suya sea menor que la del recurso
-	if (currentThread->getPrioridad() < prioriRecurso) {
-		currentThread->setPrioridad(prioriRecurso);
-	}
 }
 
 Lock::~Lock() {
