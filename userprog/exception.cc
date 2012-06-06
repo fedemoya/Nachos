@@ -61,6 +61,7 @@ ExceptionHandler(ExceptionType which)
     char *chars = new char(100);
     int bufferAddr;
     int openFileId, size;
+    int spaceId;
 
     static NuestroFilesys *nuestroFilesys = NULL;
     if(nuestroFilesys == NULL) {
@@ -111,6 +112,13 @@ ExceptionHandler(ExceptionType which)
     			nuestroFilesys->nuestraClose(openFileId);
 				incrementarPC();
 				break;
+    		case SC_Exec :
+    			/* para depuración */ printf("Se ejecuto EXEC\n");
+    			readStringFromMem(chars, 4);
+    			spaceId = nuestraExec(chars);
+				machine->WriteRegister(2, spaceId);
+				incrementarPC();
+    			break;
     		default :
     			ASSERT(false);
     	}
