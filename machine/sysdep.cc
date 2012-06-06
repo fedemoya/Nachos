@@ -173,6 +173,11 @@ WriteFile(int fd, const char *buffer, int nBytes)
 //----------------------------------------------------------------------
 // Lseek
 // 	Change the location within an open file.  Abort on error.
+//
+// "fd" files descriptor.
+// "offset" cantidad de bytes desplazados desde la posición idicada en whence.
+// "whence" puede ser 0, 1 o 2 para indicar que el desplazamiento offset sera
+// medido desde el principio, desde la posición actual o desde el final del archivo.
 //----------------------------------------------------------------------
 
 void 

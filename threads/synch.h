@@ -172,7 +172,6 @@ class Messages {
   ~Messages();          // destructor
   const char* getName() { return name; }	// para depuraci�n
 
-  Port getNextPortNumber();
   void Send(Port puerto, int mensaje);
   void Receive(Port puerto, int* mensaje);
 
