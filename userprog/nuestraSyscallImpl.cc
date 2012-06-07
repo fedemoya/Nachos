@@ -177,7 +177,7 @@ SpaceId nuestraExec(char *filename) {
     newThread = new Thread (filename);
     newThread->Fork(runInChildThread, (void *)space);
 
-    currentThread->Yield();//TODO: ver xq es necesario hacer este cambio de contexto
+//    currentThread->Yield();//TODO: ver xq es necesario hacer este cambio de contexto
 
     return spaceData->key;
 }
