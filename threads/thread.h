@@ -45,6 +45,14 @@
 #include "addrspace.h"
 #endif
 
+
+typedef enum  { PrioridadMinima = 0,
+				PrioridadBaja,
+				PrioridadMedia,
+				PrioridadMaxima,
+				Prioridad_MaxValue//indica la cantidad de Prioridades que existen
+			  } PrioridadHilo;
+
 // CPU register state to be saved on context switch.  
 // x86 processors needs 9 32-bit registers, whereas x64 has 8 extra registers
 // We allocate room for the maximum of these two architectures
@@ -84,6 +92,7 @@ class Thread {
     //--{smb 18/04/2012
     Thread(const char* debugName);	// initialize a Thread
     Thread(const char* debugName,bool isJoinable);	// initialize a Thread
+    Thread(const char* debugName,bool isJoinable, PrioridadHilo prio);	// initialize a Thread
     //--}
 
     ~Thread(); 				// deallocate a Thread
@@ -97,6 +106,9 @@ class Thread {
      void Join(Thread* target);
      bool canMakeJoin();
      void makeJoinFromParentJoin(Thread* padre);
+     PrioridadHilo getPrioridad();
+     void setPrioridad(PrioridadHilo prio);
+
      //--}
 
     void Fork(VoidFunctionPtr func, void* arg);	// Make thread run (*func)(arg)
@@ -126,9 +138,11 @@ class Thread {
     Thread* parent;
     Lock* conditionLock;
     Condition* condition;
+    PrioridadHilo prioridad;
     //--}
 
     void StackAllocate(VoidFunctionPtr func, void* arg);
+    void constructor(const char* debugName,bool isJoinable, PrioridadHilo prio);
     					// Allocate a stack for thread.
 					// Used internally by Fork()
 

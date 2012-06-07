@@ -34,27 +34,48 @@ const unsigned STACK_FENCEPOST = 0xdeadbeef;
 
 
 Thread::Thread(const char* debugName){
-	Thread(debugName, false);
+	constructor(debugName, false, PrioridadMinima);
 }
 
 //--{smb 18/04/2012 - Pr 3 - ej 3
 //Thread::Thread(const char* debugName);	// initialize a Thread
 Thread::Thread(const char* debugName,bool isJoinable)// initialize a Thread
 {
+	constructor(debugName,isJoinable,PrioridadMinima);
+}
+
+Thread::Thread(const char* debugName,bool isJoinable, PrioridadHilo prio) {
+	constructor(debugName,isJoinable,prio);
+}
+
+
+void Thread::constructor(const char* debugName,bool isJoinable, PrioridadHilo prio) {
+	prioridad = prio;
 	mustMakeJoin = isJoinable;
 	isWaittingJoinFromParentToFinish = false;
 	if (mustMakeJoin){//solo son usadas por los hilos que deben esperar ser joineados
-		conditionLock = new Lock(debugName);
-		condition = new Condition(debugName,conditionLock);
+		this->conditionLock = new Lock(debugName);
+		this->condition = new Condition(debugName,conditionLock);
 	}
+
 //--}
-	name = debugName;
+	this->name = debugName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
+}
+
+PrioridadHilo
+Thread::getPrioridad() {
+	return prioridad;
+}
+
+void
+Thread::setPrioridad(PrioridadHilo prio) {
+	prioridad = prio;
 }
 
 //----------------------------------------------------------------------
@@ -148,6 +169,7 @@ void Thread::Join(Thread* target){
 	//	return;//esto creo que no está dentro de la precondicion asi que se puede implementar como se quiera
 	//} // otra opcion es ASSERT(target->canMakeJoin)
 	ASSERT(target->canMakeJoin());
+	printf("padre %s pidio join a hijo %s \n",currentThread->getName(),target->getName());
 	target->makeJoinFromParentJoin(this);
 }
 
