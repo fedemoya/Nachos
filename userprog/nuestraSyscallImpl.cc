@@ -138,3 +138,61 @@ void NuestroFilesys::nuestraWrite(char *buffer, int size, OpenFileId id) {
 	printf("El identificador de archivo %d no corresponde a un archivo abierto.\n", id);
 	ASSERT(false);
 }
+
+typedef struct {
+	SpaceId key;
+	AddrSpace *value;
+} SpaceData;
+
+List<SpaceData*>* spaceList;
+int nextSpaceId=1;
+
+void runInChildThread(void*);
+
+SpaceId nuestraExec(char *filename) {
+
+	static Thread* newThread;
+	static AddrSpace* space;
+	SpaceData* spaceData;
+
+	OpenFile *executable = fileSystem->Open(filename);
+
+	if (executable == NULL) {
+		printf("Unable to open file %s\n", filename);
+		return 0;
+	}
+
+	space = new AddrSpace(executable);
+	delete executable;			// close file
+
+	if (spaceList == NULL) {
+    	spaceList = new List<SpaceData*>;
+    }
+
+    spaceData = new SpaceData;
+    spaceData->key = nextSpaceId++;
+    spaceData->value = space;
+    spaceList->Append(spaceData);
+
+    newThread = new Thread (filename);
+    newThread->Fork(runInChildThread, (void *)space);
+
+//    currentThread->Yield();//TODO: ver xq es necesario hacer este cambio de contexto
+
+    return spaceData->key;
+}
+
+void runInChildThread(void* space) {
+
+	printf("Aca deberia aparecer el nombre del arhivo a ejecutar: %s\n",currentThread->getName());
+
+    currentThread->space = (AddrSpace *) space;
+
+    currentThread->space->InitRegisters();		// set the initial register values
+    currentThread->space->RestoreState();		// load page table register
+
+    machine->Run();			// jump to the user progam
+    printf("La funcion startProcess llego al assert\n");
+    ASSERT(false);
+}
+

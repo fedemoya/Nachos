@@ -30,6 +30,8 @@ void readStringFromMem(char *buf, int reg);
 bool writeCharsToMem(char *str, int size, int addr);
 void incrementarPC();
 
+void printException(int);
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -61,6 +63,7 @@ ExceptionHandler(ExceptionType which)
     char *chars = new char(100);
     int bufferAddr;
     int openFileId, size;
+    int spaceId;
 
     static NuestroFilesys *nuestroFilesys = NULL;
     if(nuestroFilesys == NULL) {
@@ -111,6 +114,21 @@ ExceptionHandler(ExceptionType which)
     			nuestroFilesys->nuestraClose(openFileId);
 				incrementarPC();
 				break;
+    		case SC_Exec :
+    			/* para depuración */ printf("Se ejecuto EXEC\n");
+    			readStringFromMem(chars, 4);
+    			spaceId = nuestraExec(chars);
+				machine->WriteRegister(2, spaceId);
+				incrementarPC();
+    			break;
+    		case SC_Exit:
+    			/* para depuración */ printf("Se ejecuto EXIT\n");
+    			incrementarPC();
+    			break;
+    		case SC_Join:
+    			/* para depuración */ printf("Se ejecuto JOIN\n");
+    			incrementarPC();
+    			break;
     		default :
     			ASSERT(false);
     	}
@@ -118,7 +136,8 @@ ExceptionHandler(ExceptionType which)
     } else {
     	// TODO Manejar el resto de las excepciones.
     	// Al menos las que puedan ser disparadas por el método Translate.
-    	printf("Unexpected user mode exception %d %d\n", which, type);
+    	printf("Unexpected user mode exception -> ");
+    	printException(which);
     	ASSERT(false);
     }
 }
@@ -145,4 +164,39 @@ bool writeCharsToMem(char *str, int size, int addr) {
 
 void incrementarPC() {
     machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
+}
+
+void printException(int which) {
+	switch(which){
+		case NoException:
+			printf("Everything ok!\n");
+			break;
+		case SyscallException:
+			printf("A program executed a system call\n");
+			break;
+		case PageFaultException:
+			printf("No valid translation found\n");
+			break;
+		case ReadOnlyException:
+			printf("Write attempted to page marked \"read-only\"\n");
+			break;
+		case BusErrorException:
+			printf("Translation resulted in an invalid physical address\n");
+			break;
+		case AddressErrorException:
+			printf("Unaligned reference or one that was beyond the end of the address space\n");
+			break;
+		case OverflowException:
+			printf("Integer overflow in add or sub\n");
+			break;
+		case IllegalInstrException:
+			printf("Unimplemented or reserved instr\n");
+			break;
+		case  NumExceptionTypes:
+			printf("NumExceptionTypes");
+			break;
+		default:
+			printf("Excepcion desconocida\n");
+			break;
+	};
 }

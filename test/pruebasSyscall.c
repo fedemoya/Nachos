@@ -6,19 +6,16 @@ void prueba3(int);
 
 int main()
 {
-//	prueba1();
-//	prueba2();
-//	prueba3(5);
-	pruebaClose();
+	prueba2();
     return 0;
 }
 
 // Escribe "ABC" a la consola.
 void prueba1(){
 	char algoParaEscribir[100];
-	algoParaEscribir[0] = 'A';
-	algoParaEscribir[1] = 'B';
-	algoParaEscribir[2] = 'C';
+	algoParaEscribir[0] = 'E';
+	algoParaEscribir[1] = 'F';
+	algoParaEscribir[2] = 'G';
 	Write(algoParaEscribir, 3, ConsoleOutput);
 }
 
@@ -26,8 +23,8 @@ void prueba1(){
 void prueba2(){
 	int id;
 	char algoParaEscribir[100];
-	Create("prueba2");
-	id = (int) Open("prueba2");
+	Create("hijo");
+	id = (int) Open("hijo");
 	algoParaEscribir[0] = 'A';
 	algoParaEscribir[1] = 'B';
 	algoParaEscribir[2] = 'C';
@@ -62,4 +59,8 @@ void pruebaClose(){
 	Write(algoParaEscribir, 3, ida);
 	Close(ida);Close(idb);
 	Write(algoParaEscribir, 3, ida);
+}
+
+void pruebaExec(){
+	Exec("/home/emanuel/eclipse/workspace/Nachos/test/halt");
 }
