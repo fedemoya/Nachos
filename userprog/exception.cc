@@ -27,6 +27,7 @@
 #include "nuestraSyscallImpl.h"
 
 void readStringFromMem(char *buf, int reg);
+void readCharsFromMem(char *buf, int size, int reg);
 bool writeCharsToMem(char *str, int size, int addr);
 void incrementarPC();
 
@@ -102,8 +103,8 @@ ExceptionHandler(ExceptionType which)
 				break;
     		case SC_Write :
     			/* para depuración */ printf("Se ejecuto WRITE\n");
-				readStringFromMem(chars, 4);
 				size = machine->ReadRegister(5);
+				readCharsFromMem(chars, size, 4); // TODO size no puede ser > 100
 				openFileId = machine->ReadRegister(6);
 				nuestroFilesys->nuestraWrite(chars, size, openFileId);
 				incrementarPC();
@@ -148,6 +149,14 @@ void readStringFromMem(char *str, int reg) {
 		machine->ReadMem(machine->ReadRegister(reg) + cont,1, (int *)&str[cont]);
 		if (str[cont] == '\0')
 		  break;
+		cont++;
+	}
+}
+
+void readCharsFromMem(char *chars, int size, int reg) {
+	int cont = 0;
+	while(cont < size){
+		machine->ReadMem(machine->ReadRegister(reg) + cont,1, (int *)&chars[cont]);
 		cont++;
 	}
 }
