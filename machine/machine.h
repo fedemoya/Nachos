@@ -25,14 +25,16 @@
 #include "utility.h"
 #include "translate.h"
 #include "disk.h"
-
+//--{ smb 26/04/2012
+#include "bitmap.h"
+//--} smb 26/04/2012
 // Definitions related to the size, and format of user memory
 
 const int PageSize = SectorSize; 	// set the page size equal to
 					// the disk sector size, for
 					// simplicity
 
-const int NumPhysPages = 128;
+const int NumPhysPages = 128;//32;
 const int MemorySize = NumPhysPages * PageSize;
 const int TLBSize = 4;			// if there is a TLB, make it small
 
@@ -155,6 +157,10 @@ class Machine {
 
     char *mainMemory;		// physical memory to store user program,
 				// code and data, while executing
+	//--{ smb 26/04/2012
+	BitMap * bitMapPagMemAdmin;
+	//--} smb 26/04/2012
+
     int registers[NumTotalRegs]; // CPU registers, for executing user programs
 
 

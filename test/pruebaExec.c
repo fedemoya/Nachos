@@ -27,8 +27,8 @@ void prueba1(){
 void prueba2(){
 	int id;
 	char algoParaEscribir[100];
-	Create("padre");
-	id = (int) Open("padre");
+	Create("./test/recursos/padre");
+	id = (int) Open("./test/recursos/padre");
 	algoParaEscribir[0] = 'X';
 	algoParaEscribir[1] = 'Y';
 	algoParaEscribir[2] = 'Z';

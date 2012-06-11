@@ -34,62 +34,62 @@ CPP = /lib/cpp
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR) -mips1
 
-all: pruebaExec2ndTry programa
+#all: pruebaExec2ndTry programa
 
-#all: halt pruebasSyscall pruebaExec shell matmult sort
+all: halt pruebasSyscall pruebaExec shell matmult sort
 
-#start.o: start.s ../userprog/syscall.h
-#	$(CPP) $(CPPFLAGS) start.s > strt.s
-#	$(AS) $(ASFLAGS) -o start.o strt.s
-#	rm strt.s
-#
-#halt.o: halt.c
-#	$(CC) $(CFLAGS) -c halt.c
-#halt: halt.o start.o
-#	$(LD) $(LDFLAGS) start.o halt.o -o halt.coff
-#	../bin/coff2noff halt.coff halt
-#
-#shell.o: shell.c
-#	$(CC) $(CFLAGS) -c shell.c
-#shell: shell.o start.o
-#	$(LD) $(LDFLAGS) start.o shell.o -o shell.coff
-#	../bin/coff2noff shell.coff shell
-#
-#sort.o: sort.c
-#	$(CC) $(CFLAGS) -c sort.c
-#sort: sort.o start.o
-#	$(LD) $(LDFLAGS) start.o sort.o -o sort.coff
-#	../bin/coff2noff sort.coff sort
-#
-#matmult.o: matmult.c
-#	$(CC) $(CFLAGS) -c matmult.c
-#matmult: matmult.o start.o
-#	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
-#	../bin/coff2noff matmult.coff matmult
-#
-#pruebasSyscall.o: pruebasSyscall.c
-#	$(CC) $(CFLAGS) -c pruebasSyscall.c
-#pruebasSyscall: pruebasSyscall.o start.o
-#	$(LD) $(LDFLAGS) start.o pruebasSyscall.o -o pruebasSyscall.coff
-#	../bin/coff2noff pruebasSyscall.coff pruebasSyscall
-#	
-#pruebaExec.o: pruebaExec.c
-#	$(CC) $(CFLAGS) -c pruebaExec.c
-#pruebaExec: pruebaExec.o start.o
-#	$(LD) $(LDFLAGS) start.o pruebaExec.o -o pruebaExec.coff
-#	../bin/coff2noff pruebaExec.coff pruebaExec
+start.o: start.s ../userprog/syscall.h
+	$(CPP) $(CPPFLAGS) start.s > strt.s
+	$(AS) $(ASFLAGS) -o start.o strt.s
+	rm strt.s
 
-pruebaExec2ndTry.o: pruebaExec2ndTry.c
-	$(CC) $(CFLAGS) -c pruebaExec2ndTry.c
-pruebaExec2ndTry: pruebaExec2ndTry.o start.o
-	$(LD) $(LDFLAGS) start.o pruebaExec2ndTry.o -o pruebaExec2ndTry.coff
-	../bin/coff2noff pruebaExec2ndTry.coff pruebaExec2ndTry
+halt.o: halt.c
+	$(CC) $(CFLAGS) -c halt.c
+halt: halt.o start.o
+	$(LD) $(LDFLAGS) start.o halt.o -o halt.coff
+	../bin/coff2noff halt.coff halt
+
+shell.o: shell.c
+	$(CC) $(CFLAGS) -c shell.c
+shell: shell.o start.o
+	$(LD) $(LDFLAGS) start.o shell.o -o shell.coff
+	../bin/coff2noff shell.coff shell
+
+sort.o: sort.c
+	$(CC) $(CFLAGS) -c sort.c
+sort: sort.o start.o
+	$(LD) $(LDFLAGS) start.o sort.o -o sort.coff
+	../bin/coff2noff sort.coff sort
+
+matmult.o: matmult.c
+	$(CC) $(CFLAGS) -c matmult.c
+matmult: matmult.o start.o
+	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
+	../bin/coff2noff matmult.coff matmult
+
+pruebasSyscall.o: pruebasSyscall.c
+	$(CC) $(CFLAGS) -c pruebasSyscall.c
+pruebasSyscall: pruebasSyscall.o start.o
+	$(LD) $(LDFLAGS) start.o pruebasSyscall.o -o pruebasSyscall.coff
+	../bin/coff2noff pruebasSyscall.coff pruebasSyscall
 	
-programa.o: programa.c
-	$(CC) $(CFLAGS) -c programa.c
-programa: programa.o start.o
-	$(LD) $(LDFLAGS) start.o programa.o -o programa.coff
-	../bin/coff2noff programa.coff programa
+pruebaExec.o: pruebaExec.c
+	$(CC) $(CFLAGS) -c pruebaExec.c
+pruebaExec: pruebaExec.o start.o
+	$(LD) $(LDFLAGS) start.o pruebaExec.o -o pruebaExec.coff
+	../bin/coff2noff pruebaExec.coff pruebaExec
+
+#pruebaExec2ndTry.o: pruebaExec2ndTry.c
+#	$(CC) $(CFLAGS) -c pruebaExec2ndTry.c
+#pruebaExec2ndTry: pruebaExec2ndTry.o start.o
+#	$(LD) $(LDFLAGS) start.o pruebaExec2ndTry.o -o pruebaExec2ndTry.coff
+#	../bin/coff2noff pruebaExec2ndTry.coff pruebaExec2ndTry
+#	
+#programa.o: programa.c
+#	$(CC) $(CFLAGS) -c programa.c
+#programa: programa.o start.o
+#	$(LD) $(LDFLAGS) start.o programa.o -o programa.coff
+#	../bin/coff2noff programa.coff programa
 
 # Estas reglas sirven para compilar programas simples,
 # que consistan en un �nico fuente.
