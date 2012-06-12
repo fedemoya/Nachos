@@ -170,14 +170,14 @@ SpaceId nuestraExec(char *filename) {
     }
 
     spaceData = new SpaceData;
-    spaceData->key = nextSpaceId++;
-    spaceData->value = space;
-    spaceList->Append(spaceData);
 
     newThread = new Thread (filename);
-    newThread->Fork(runInChildThread, (void *)space);
 
-//    currentThread->Yield();//TODO: ver xq es necesario hacer este cambio de contexto
+    spaceData->key = newThread->getId();
+	spaceData->value = space;
+	spaceList->Append(spaceData);
+
+	newThread->Fork(runInChildThread, (void *)space);
 
     return spaceData->key;
 }
@@ -203,14 +203,14 @@ void nuestraExit(int status) {
 
 	SpaceData* spaceData = iter->Next();
 	//si es el primer elemento de la lista lo borro con el metodo remove de lista
-	if(iter->HasNext() && spaceData->id == id){
+	if(iter->HasNext() && spaceData->key == currentThread->getId()){
 		spaceList->Remove();
 	}
 	else {
 		//sino es el primer elementos, busco cual es el elemento con el iterador y lo borro
 		while(iter->HasNext()){
 			spaceData = iter->Next();
-			if(spaceData->id == id){
+			if(spaceData->key == currentThread->getId()){
 				iter->Remove();
 			}
 		}
