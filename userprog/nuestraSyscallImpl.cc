@@ -196,3 +196,25 @@ void runInChildThread(void* space) {
     ASSERT(false);
 }
 
+
+void nuestraExit(int status) {
+
+	Iterator<SpaceData*>* iter = spaceList->GetIterator();
+
+	SpaceData* spaceData = iter->Next();
+	//si es el primer elemento de la lista lo borro con el metodo remove de lista
+	if(iter->HasNext() && spaceData->id == id){
+		spaceList->Remove();
+	}
+	else {
+		//sino es el primer elementos, busco cual es el elemento con el iterador y lo borro
+		while(iter->HasNext()){
+			spaceData = iter->Next();
+			if(spaceData->id == id){
+				iter->Remove();
+			}
+		}
+	}
+
+	currentThread->Finish();
+}

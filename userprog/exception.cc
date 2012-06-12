@@ -63,7 +63,7 @@ ExceptionHandler(ExceptionType which)
 
     char *chars = new char(100);
     int bufferAddr;
-    int openFileId, size;
+    int openFileId, size, status;
     int spaceId;
 
     static NuestroFilesys *nuestroFilesys = NULL;
@@ -124,6 +124,8 @@ ExceptionHandler(ExceptionType which)
     			break;
     		case SC_Exit:
     			/* para depuración */ printf("Se ejecuto EXIT\n");
+    			status = machine->ReadRegister(4);
+    			nuestraExit(status);
     			incrementarPC();
     			break;
     		case SC_Join:

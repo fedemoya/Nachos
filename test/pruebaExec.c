@@ -6,8 +6,8 @@ void prueba2();
 
 int main()
 {
-	prueba2();
 	pruebaExec();
+	prueba2();
     return 0;
 }
 

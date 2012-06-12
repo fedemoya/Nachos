@@ -64,4 +64,6 @@ typedef int SpaceId;
 
 SpaceId nuestraExec(char *name);
 
+void nuestraExit(int status);
+
 #endif /* NUESTRASYSCALLIMPL_H_ */
