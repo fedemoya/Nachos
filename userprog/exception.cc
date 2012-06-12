@@ -130,6 +130,9 @@ ExceptionHandler(ExceptionType which)
     			break;
     		case SC_Join:
     			/* para depuración */ printf("Se ejecuto JOIN\n");
+    			spaceId = machine->ReadRegister(4);
+    			status = nuestraJoin(spaceId);
+    			machine->WriteRegister(2,status);
     			incrementarPC();
     			break;
     		default :

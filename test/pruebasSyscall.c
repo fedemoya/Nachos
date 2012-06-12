@@ -7,7 +7,7 @@ void prueba3(int);
 int main()
 {
 	prueba2();
-    return 0;
+    Exit(2);
 }
 
 // Escribe "ABC" a la consola.

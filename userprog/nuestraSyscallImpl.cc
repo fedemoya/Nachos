@@ -141,7 +141,8 @@ void NuestroFilesys::nuestraWrite(char *buffer, int size, OpenFileId id) {
 
 typedef struct {
 	SpaceId key;
-	AddrSpace *value;
+	Thread *thread;
+	int status;
 } SpaceData;
 
 List<SpaceData*>* spaceList;
@@ -171,10 +172,10 @@ SpaceId nuestraExec(char *filename) {
 
     spaceData = new SpaceData;
 
-    newThread = new Thread (filename);
+    newThread = new Thread (filename, true);
 
     spaceData->key = newThread->getId();
-	spaceData->value = space;
+    spaceData->thread = newThread;
 	spaceList->Append(spaceData);
 
 	newThread->Fork(runInChildThread, (void *)space);
@@ -196,25 +197,46 @@ void runInChildThread(void* space) {
     ASSERT(false);
 }
 
-
 void nuestraExit(int status) {
+
+	printf("status del hilo %s: %d\n", currentThread->getName(), status);
+
+	if(strcmp(currentThread->getName(), "main"))
+			return;
 
 	Iterator<SpaceData*>* iter = spaceList->GetIterator();
 
-	SpaceData* spaceData = iter->Next();
-	//si es el primer elemento de la lista lo borro con el metodo remove de lista
-	if(iter->HasNext() && spaceData->key == currentThread->getId()){
-		spaceList->Remove();
-	}
-	else {
-		//sino es el primer elementos, busco cual es el elemento con el iterador y lo borro
-		while(iter->HasNext()){
-			spaceData = iter->Next();
-			if(spaceData->key == currentThread->getId()){
-				iter->Remove();
-			}
+	while(iter->HasNext()){
+		SpaceData *spaceData = iter->Next();
+		if(spaceData->key == currentThread->getId()){
+			spaceData->status = status;
 		}
 	}
 
 	currentThread->Finish();
 }
+
+// Duda hay que sincronizar Join?
+int nuestraJoin(SpaceId idHijo) {
+
+	int status;
+	SpaceData *spaceData;
+	Thread *threadHijo;
+
+	Iterator<SpaceData*>* iter = spaceList->GetIterator();
+
+	//sino es el primer elementos, busco cual es el elemento con el iterador y lo borro
+	while(iter->HasNext()){
+		spaceData = iter->Next();
+		if(spaceData->key == idHijo){
+			threadHijo = spaceData->thread;
+		}
+	}
+
+	threadHijo->makeJoinFromParentJoin(currentThread);
+
+	return spaceData->status;
+
+}
+
+
