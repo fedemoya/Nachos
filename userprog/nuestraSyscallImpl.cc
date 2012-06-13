@@ -201,7 +201,7 @@ void nuestraExit(int status) {
 
 	printf("status del hilo %s: %d\n", currentThread->getName(), status);
 
-	if(strcmp(currentThread->getName(), "main"))
+	if(strcmp(currentThread->getName(), "main") == 0)
 			return;
 
 	Iterator<SpaceData*>* iter = spaceList->GetIterator();
@@ -212,6 +212,8 @@ void nuestraExit(int status) {
 			spaceData->status = status;
 		}
 	}
+
+	printf("%s entrando a Finish()\n", currentThread->getName());
 
 	currentThread->Finish();
 }
@@ -233,7 +235,7 @@ int nuestraJoin(SpaceId idHijo) {
 		}
 	}
 
-	threadHijo->makeJoinFromParentJoin(currentThread);
+	currentThread->Join(threadHijo);
 
 	return spaceData->status;
 
