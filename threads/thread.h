@@ -124,7 +124,13 @@ class Thread {
     const char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
 
+    int getId();
+
   private:
+
+    // Identificador unico de hilo (necesario para Exit).
+    int threadId;
+
     // some of the private data for this class is listed above
     
     HostMemoryAddress* stack; 		// Bottom of the stack 

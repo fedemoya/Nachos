@@ -93,8 +93,8 @@ main(int argc, char **argv)
 #ifdef THREADS
 //    ThreadTest();
 //    MessagesTest();
-    inversionPrioridades();
-//    JoinTest();
+//    inversionPrioridades();
+    JoinTest();
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {

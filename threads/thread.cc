@@ -24,6 +24,12 @@
 // for detecting stack overflows
 const unsigned STACK_FENCEPOST = 0xdeadbeef;	
 
+
+int nextId = 1;
+int getNextId(){
+	return nextId++;
+}
+
 //----------------------------------------------------------------------
 // Thread::Thread
 // 	Initialize a thread control block, so that we can then call
@@ -50,6 +56,9 @@ Thread::Thread(const char* debugName,bool isJoinable, PrioridadHilo prio) {
 
 
 void Thread::constructor(const char* debugName,bool isJoinable, PrioridadHilo prio) {
+
+	threadId = getNextId();
+
 	prioridad = prio;
 	mustMakeJoin = isJoinable;
 	isWaittingJoinFromParentToFinish = false;
@@ -66,6 +75,10 @@ void Thread::constructor(const char* debugName,bool isJoinable, PrioridadHilo pr
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
+}
+
+int Thread::getId(){
+	return threadId;
 }
 
 PrioridadHilo

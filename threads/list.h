@@ -56,6 +56,7 @@ class Iterator {
 		// Saca de la lista el elemento sobre el que
 		// esta parado el iterador.
 		Item Remove();
+		Iterator<Item>* Restart(ListElement<Item> *first);
 	private:
 		ListElement<Item> *nextElement;
 		bool hasNext;
@@ -63,8 +64,7 @@ class Iterator {
 
 template <class Item>
 Iterator<Item>::Iterator(ListElement<Item> *first){
-	hasNext = (first != NULL);
-	nextElement = first;
+	Restart(first);
 }
 
 template <class Item>
@@ -100,6 +100,13 @@ Item Iterator<Item>::Remove(){
 	return thing;
 }
 
+template <class Item>
+Iterator<Item>* Iterator<Item>::Restart(ListElement<Item> *first){
+	hasNext = (first != NULL);
+	nextElement = first;
+}
+
+
 // The following class defines a "list" -- a singly linked list of
 // list elements, each of which points to a single item on the list.
 //
@@ -131,6 +138,8 @@ class List {
     typedef ListElement<Item> ListNode;
     ListNode *first;  		// Head of the list, NULL if list is empty
     ListNode *last;		// Last element of list
+
+    Iterator<Item>* iterator;
 };
 
 //----------------------------------------------------------------------
@@ -143,6 +152,7 @@ template <class Item>
 List<Item>::List()
 {
     first = last = NULL;
+    iterator = NULL;
 }
 
 //----------------------------------------------------------------------
@@ -347,7 +357,12 @@ List<Item>::SortedRemove(int *keyPtr)
 
 template <class Item>
 Iterator<Item>* List<Item>::GetIterator(){
-	return new Iterator<Item>(first);
+	if (iterator == NULL) {
+		iterator = new Iterator<Item>(first);
+	} else {
+		iterator->Restart(first);
+	}
+	return iterator;
 }
 
 

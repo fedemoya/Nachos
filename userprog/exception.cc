@@ -27,8 +27,11 @@
 #include "nuestraSyscallImpl.h"
 
 void readStringFromMem(char *buf, int reg);
+void readCharsFromMem(char *buf, int size, int reg);
 bool writeCharsToMem(char *str, int size, int addr);
 void incrementarPC();
+
+void printException(int);
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -60,7 +63,8 @@ ExceptionHandler(ExceptionType which)
 
     char *chars = new char(100);
     int bufferAddr;
-    int openFileId, size;
+    int openFileId, size, status;
+    int spaceId;
 
     static NuestroFilesys *nuestroFilesys = NULL;
     if(nuestroFilesys == NULL) {
@@ -99,8 +103,8 @@ ExceptionHandler(ExceptionType which)
 				break;
     		case SC_Write :
     			/* para depuración */ printf("Se ejecuto WRITE\n");
-				readStringFromMem(chars, 4);
 				size = machine->ReadRegister(5);
+				readCharsFromMem(chars, size, 4); // TODO size no puede ser > 100
 				openFileId = machine->ReadRegister(6);
 				nuestroFilesys->nuestraWrite(chars, size, openFileId);
 				incrementarPC();
@@ -111,6 +115,26 @@ ExceptionHandler(ExceptionType which)
     			nuestroFilesys->nuestraClose(openFileId);
 				incrementarPC();
 				break;
+    		case SC_Exec :
+    			/* para depuración */ printf("Se ejecuto EXEC\n");
+    			readStringFromMem(chars, 4);
+    			spaceId = nuestraExec(chars);
+				machine->WriteRegister(2, spaceId);
+				incrementarPC();
+    			break;
+    		case SC_Exit:
+    			/* para depuración */ printf("Se ejecuto EXIT\n");
+    			status = machine->ReadRegister(4);
+    			nuestraExit(status);
+    			incrementarPC();
+    			break;
+    		case SC_Join:
+    			/* para depuración */ printf("Se ejecuto JOIN\n");
+    			spaceId = machine->ReadRegister(4);
+    			status = nuestraJoin(spaceId);
+    			machine->WriteRegister(2,status);
+    			incrementarPC();
+    			break;
     		default :
     			ASSERT(false);
     	}
@@ -118,7 +142,8 @@ ExceptionHandler(ExceptionType which)
     } else {
     	// TODO Manejar el resto de las excepciones.
     	// Al menos las que puedan ser disparadas por el método Translate.
-    	printf("Unexpected user mode exception %d %d\n", which, type);
+    	printf("Unexpected user mode exception -> ");
+    	printException(which);
     	ASSERT(false);
     }
 }
@@ -129,6 +154,14 @@ void readStringFromMem(char *str, int reg) {
 		machine->ReadMem(machine->ReadRegister(reg) + cont,1, (int *)&str[cont]);
 		if (str[cont] == '\0')
 		  break;
+		cont++;
+	}
+}
+
+void readCharsFromMem(char *chars, int size, int reg) {
+	int cont = 0;
+	while(cont < size){
+		machine->ReadMem(machine->ReadRegister(reg) + cont,1, (int *)&chars[cont]);
 		cont++;
 	}
 }
@@ -145,4 +178,39 @@ bool writeCharsToMem(char *str, int size, int addr) {
 
 void incrementarPC() {
     machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
+}
+
+void printException(int which) {
+	switch(which){
+		case NoException:
+			printf("Everything ok!\n");
+			break;
+		case SyscallException:
+			printf("A program executed a system call\n");
+			break;
+		case PageFaultException:
+			printf("No valid translation found\n");
+			break;
+		case ReadOnlyException:
+			printf("Write attempted to page marked \"read-only\"\n");
+			break;
+		case BusErrorException:
+			printf("Translation resulted in an invalid physical address\n");
+			break;
+		case AddressErrorException:
+			printf("Unaligned reference or one that was beyond the end of the address space\n");
+			break;
+		case OverflowException:
+			printf("Integer overflow in add or sub\n");
+			break;
+		case IllegalInstrException:
+			printf("Unimplemented or reserved instr\n");
+			break;
+		case  NumExceptionTypes:
+			printf("NumExceptionTypes");
+			break;
+		default:
+			printf("Excepcion desconocida\n");
+			break;
+	};
 }

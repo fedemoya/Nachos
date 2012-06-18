@@ -34,7 +34,9 @@ CPP = /lib/cpp
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR) -mips1
 
-all: halt pruebasSyscall shell matmult sort
+#all: pruebaExec2ndTry programa
+
+all: halt pruebasSyscall pruebaExec shell matmult sort
 
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.s > strt.s
@@ -70,6 +72,24 @@ pruebasSyscall.o: pruebasSyscall.c
 pruebasSyscall: pruebasSyscall.o start.o
 	$(LD) $(LDFLAGS) start.o pruebasSyscall.o -o pruebasSyscall.coff
 	../bin/coff2noff pruebasSyscall.coff pruebasSyscall
+	
+pruebaExec.o: pruebaExec.c
+	$(CC) $(CFLAGS) -c pruebaExec.c
+pruebaExec: pruebaExec.o start.o
+	$(LD) $(LDFLAGS) start.o pruebaExec.o -o pruebaExec.coff
+	../bin/coff2noff pruebaExec.coff pruebaExec
+
+#pruebaExec2ndTry.o: pruebaExec2ndTry.c
+#	$(CC) $(CFLAGS) -c pruebaExec2ndTry.c
+#pruebaExec2ndTry: pruebaExec2ndTry.o start.o
+#	$(LD) $(LDFLAGS) start.o pruebaExec2ndTry.o -o pruebaExec2ndTry.coff
+#	../bin/coff2noff pruebaExec2ndTry.coff pruebaExec2ndTry
+#	
+#programa.o: programa.c
+#	$(CC) $(CFLAGS) -c programa.c
+#programa: programa.o start.o
+#	$(LD) $(LDFLAGS) start.o programa.o -o programa.coff
+#	../bin/coff2noff programa.coff programa
 
 # Estas reglas sirven para compilar programas simples,
 # que consistan en un �nico fuente.
