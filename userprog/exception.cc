@@ -173,7 +173,7 @@ void readCharsFromMem(char *chars, int size, int reg) {
 bool writeCharsToMem(char *str, int size, int addr) {
 	int count = 0;
 	while(count < size) {
-		if(!machine->WriteMem(addr + count, 1, (int)str[count]))
+		if(!machine->WriteMem(addr + count, 1, (int)str[count])) // Hay que ver que onda acá!!!
 			return false;
 		count++;
 	}
