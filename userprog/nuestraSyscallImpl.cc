@@ -145,7 +145,7 @@ typedef struct {
 	int status;
 } SpaceData;
 
-List<SpaceData*>* spaceList;
+List<SpaceData*>* spaceList = NULL;
 int nextSpaceId=1;
 
 void runInChildThread(void*);
@@ -180,6 +180,8 @@ SpaceId nuestraExec(char *filename) {
 
 	newThread->Fork(runInChildThread, (void *)space);
 
+	currentThread->Yield();
+
     return spaceData->key;
 }
 
@@ -199,21 +201,15 @@ void runInChildThread(void* space) {
 
 void nuestraExit(int status) {
 
-	printf("status del hilo %s: %d\n", currentThread->getName(), status);
-
-	if(strcmp(currentThread->getName(), "main") == 0)
-			return;
-
-	Iterator<SpaceData*>* iter = spaceList->GetIterator();
-
-	while(iter->HasNext()){
-		SpaceData *spaceData = iter->Next();
-		if(spaceData->key == currentThread->getId()){
-			spaceData->status = status;
+	if(spaceList != NULL) {
+		Iterator<SpaceData*>* iter	= spaceList->GetIterator();
+		while(iter->HasNext()){
+			SpaceData *spaceData = iter->Next();
+			if(spaceData->key == currentThread->getId()){
+				spaceData->status = status;
+			}
 		}
 	}
-
-	printf("%s entrando a Finish()\n", currentThread->getName());
 
 	currentThread->Finish();
 }
