@@ -82,10 +82,10 @@ void NuestroFilesys::nuestraClose(OpenFileId id) {
 
 	OpenFileData* openFileData = iter->Next();
 	//si es el primer elemento de la lista lo borro con el metodo remove de lista
-	if(iter->HasNext() && openFileData->id == id){
-		openFiles->Remove();
-	}
-	else {
+//	if(iter->HasNext() && openFileData->id == id){
+//		openFiles->Remove();
+//	}
+//	else {
 		//sino es el primer elementos, busco cual es el elemento con el iterador y lo borro
 		while(iter->HasNext()){
 			openFileData = iter->Next();
@@ -93,7 +93,7 @@ void NuestroFilesys::nuestraClose(OpenFileId id) {
 				iter->Remove();
 			}
 		}
-	}
+//	}
 }
 
 int NuestroFilesys::nuestraRead(char *buffer, int size, OpenFileId id) {

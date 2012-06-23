@@ -60,6 +60,7 @@ class Iterator {
 	private:
 		ListElement<Item> *nextElement;
 		bool hasNext;
+		ListElement<Item> *currentElement;
 };
 
 template <class Item>
@@ -75,17 +76,19 @@ bool Iterator<Item>::HasNext(){
 template <class Item>
 Item Iterator<Item>::Next(){
 	ASSERT(nextElement != NULL);
-	ListElement<Item> *element = nextElement;
+//	ListElement<Item> *element = nextElement;
+	currentElement = nextElement;
 	nextElement = nextElement->next;
 	hasNext = (nextElement != NULL);
-	return element->item;
+//	return element->item;
+	return currentElement->item;
 }
 
 template <class Item>
 Item Iterator<Item>::Remove(){
-	ASSERT(nextElement != NULL);
-	ListElement<Item> *element = nextElement;
-	nextElement = element->next;
+	ASSERT(currentElement != NULL);
+	ListElement<Item> *element = currentElement;
+//	nextElement = element->next;
 	ListElement<Item> *previousElement = element->previous;
 	if(previousElement != NULL){
 		previousElement->next = nextElement;

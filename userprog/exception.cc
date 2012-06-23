@@ -146,6 +146,7 @@ ExceptionHandler(ExceptionType which)
     	printException(which);
     	ASSERT(false);
     }
+    delete [] chars;
 }
 
 void readStringFromMem(char *str, int reg) {

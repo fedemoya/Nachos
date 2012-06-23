@@ -10,8 +10,8 @@ int main()
 	id0 = Open("./test/recursos/readme");
 	Read(buffer, size, id0);
 
-	Create("./test/recursos/writemeAAA");
-	id1 = Open("./test/recursos/writemeAAA");
+	Create("./test/recursos/writeme");
+	id1 = Open("./test/recursos/writeme");
 	Write(buffer, size, id1);
 
 	Create("./test/recursos/archivo");

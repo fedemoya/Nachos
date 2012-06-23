@@ -9,7 +9,7 @@ void prueba2();
 int main()
 {
 	SpaceId id;
-//	id = pruebaExec();
+	id = pruebaExec();
 	pruebaExec2();
 //	pruebaJoin(id);
 //	prueba2();
