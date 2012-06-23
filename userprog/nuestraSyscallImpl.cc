@@ -59,9 +59,9 @@ void NuestroFilesys::nuestraCreate(char *name) {
 
 OpenFileId NuestroFilesys::nuestraOpen(char *name) {
 	int ultimoId = 3;
-	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
-	while(iter->HasNext()){
-		OpenFileData* openFileData = iter->Next();
+	openFiles->StartIteration();
+	while(openFiles->HasNextIteration()){
+		OpenFileData* openFileData = openFiles->Next();
 		if(strcmp(name, openFileData->name) == 0){
 			return openFileData->id;
 		}
@@ -78,19 +78,19 @@ OpenFileId NuestroFilesys::nuestraOpen(char *name) {
 }
 
 void NuestroFilesys::nuestraClose(OpenFileId id) {
-	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
+	openFiles->StartIteration();
 
-	OpenFileData* openFileData = iter->Next();
+	OpenFileData* openFileData = openFiles->Next();
 	//si es el primer elemento de la lista lo borro con el metodo remove de lista
 //	if(iter->HasNext() && openFileData->id == id){
 //		openFiles->Remove();
 //	}
 //	else {
 		//sino es el primer elementos, busco cual es el elemento con el iterador y lo borro
-		while(iter->HasNext()){
-			openFileData = iter->Next();
+		while(openFiles->HasNextIteration()){
+			openFileData = openFiles->Next();
 			if(openFileData->id == id){
-				iter->Remove();
+				openFiles->RemoveCurrent();
 			}
 		}
 //	}
@@ -105,10 +105,10 @@ int NuestroFilesys::nuestraRead(char *buffer, int size, OpenFileId id) {
 		}
 		return size;
 	}
-	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
+	openFiles->StartIteration();
 	OpenFileData* openFileData;
-	while(iter->HasNext()){
-		openFileData = iter->Next();
+	while(openFiles->HasNextIteration()){
+		openFileData = openFiles->Next();
 		if(openFileData->id == id){
 			return openFileData->openFile->Read(buffer, size);
 		}
@@ -126,10 +126,10 @@ void NuestroFilesys::nuestraWrite(char *buffer, int size, OpenFileId id) {
 		}
 		return;
 	}
-	Iterator<OpenFileData*>* iter = openFiles->GetIterator();
+	openFiles->StartIteration();
 	OpenFileData* openFileData;
-	while(iter->HasNext()){
-		openFileData = iter->Next();
+	while(openFiles->HasNextIteration()){
+		openFileData = openFiles->Next();
 		if(openFileData->id == id){
 			openFileData->openFile->Write(buffer, size);
 			return;
@@ -202,9 +202,9 @@ void runInChildThread(void* space) {
 void nuestraExit(int status) {
 
 	if(spaceList != NULL) {
-		Iterator<SpaceData*>* iter	= spaceList->GetIterator();
-		while(iter->HasNext()){
-			SpaceData *spaceData = iter->Next();
+		spaceList->StartIteration();
+		while(spaceList->HasNextIteration()){
+			SpaceData *spaceData = spaceList->Next();
 			if(spaceData->key == currentThread->getId()){
 				spaceData->status = status;
 			}
@@ -221,11 +221,11 @@ int nuestraJoin(SpaceId idHijo) {
 	SpaceData *spaceData;
 	Thread *threadHijo;
 
-	Iterator<SpaceData*>* iter = spaceList->GetIterator();
+	spaceList->StartIteration();
 
 	//sino es el primer elementos, busco cual es el elemento con el iterador y lo borro
-	while(iter->HasNext()){
-		spaceData = iter->Next();
+	while(spaceList->HasNextIteration()){
+		spaceData = spaceList->Next();
 		if(spaceData->key == idHijo){
 			threadHijo = spaceData->thread;
 		}

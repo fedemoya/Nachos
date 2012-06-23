@@ -198,9 +198,9 @@ Messages::~Messages(){
 
 void Messages::Send(Port port, int senderMsg) {
 	lock->Acquire();
-	Iterator<Slot*> *iterator = queue->GetIterator();
-	while(iterator->HasNext()){
-		 Slot *slot = iterator->Next();
+	queue->StartIteration();
+	while(queue->HasNextIteration()){
+		 Slot *slot = queue->Next();
 		if(slot->port == port){
 			if(!slot->receiverBufQueue->IsEmpty()){
 				int *receiverBuf = slot->receiverBufQueue->Remove();
@@ -227,9 +227,9 @@ void Messages::Send(Port port, int senderMsg) {
 
 void Messages::Receive(Port port, int *receiverBuf) {
 	lock->Acquire();
-	Iterator<Slot*> *iterator = queue->GetIterator();
-	while(iterator->HasNext()){
-		 Slot *slot = iterator->Next();
+	queue->StartIteration();
+	while(queue->HasNextIteration()){
+		 Slot *slot = queue->Next();
 		if(slot->port == port){
 			if(!slot->senderMsgQueue->IsEmpty()){
 				int senderMsg = slot->senderMsgQueue->Remove();
