@@ -43,70 +43,6 @@ ListElement<Item>::ListElement(Item anItem, int sortKey)
      previous = NULL;
 }
 
-//----------------------------------------------------------------------
-// Iterador sobre los elementos de una lista.
-//----------------------------------------------------------------------
-template <class Item>
-class Iterator {
-	public:
-		Iterator(ListElement<Item> *first);
-		~Iterator();
-		bool HasNext();
-		Item Next();
-		// Saca de la lista el elemento sobre el que
-		// esta parado el iterador.
-		Item Remove();
-		Iterator<Item>* Restart(ListElement<Item> *first);
-	private:
-		ListElement<Item> *nextElement;
-		bool hasNext;
-};
-
-template <class Item>
-Iterator<Item>::Iterator(ListElement<Item> *first){
-	Restart(first);
-}
-
-template <class Item>
-bool Iterator<Item>::HasNext(){
-	return hasNext;
-}
-
-template <class Item>
-Item Iterator<Item>::Next(){
-	ASSERT(nextElement != NULL);
-	ListElement<Item> *element = nextElement;
-	nextElement = nextElement->next;
-	hasNext = (nextElement != NULL);
-	return element->item;
-}
-
-template <class Item>
-Item Iterator<Item>::Remove(){
-	ASSERT(nextElement != NULL);
-	ListElement<Item> *element = nextElement;
-	nextElement = element->next;
-	ListElement<Item> *previousElement = element->previous;
-	if(previousElement != NULL){
-		previousElement->next = nextElement;
-	}
-	if(nextElement != NULL){
-		nextElement->previous = previousElement;
-	} else {
-		hasNext = false;
-	}
-	Item thing = element->item;
-	delete element;
-	return thing;
-}
-
-template <class Item>
-Iterator<Item>* Iterator<Item>::Restart(ListElement<Item> *first){
-	hasNext = (first != NULL);
-	nextElement = first;
-}
-
-
 // The following class defines a "list" -- a singly linked list of
 // list elements, each of which points to a single item on the list.
 //
@@ -127,19 +63,24 @@ class List {
 
     bool IsEmpty();		// is the list empty? 
     
+    //nuevos de iterador
+    void StartIteration();
+    bool HasNextIteration();
+    Item Next();
+    void RemoveCurrent();
 
     // Routines to put/get items on/off list in order (sorted by key)
     void SortedInsert(Item item, int sortKey);	// Put item into list
     Item SortedRemove(int *keyPtr); 	  	// Remove first item from list
-
-    Iterator<Item>* GetIterator();
 
   private:
     typedef ListElement<Item> ListNode;
     ListNode *first;  		// Head of the list, NULL if list is empty
     ListNode *last;		// Last element of list
 
-    Iterator<Item>* iterator;
+    ListNode *currentElement;
+    ListNode *nextElement;
+
 };
 
 //----------------------------------------------------------------------
@@ -152,7 +93,54 @@ template <class Item>
 List<Item>::List()
 {
     first = last = NULL;
-    iterator = NULL;
+}
+
+template <class Item>
+void List<Item>::StartIteration() {
+	currentElement = first;
+	nextElement = first;
+}
+
+template <class Item>
+bool List<Item>:: HasNextIteration() {
+	return (nextElement!=NULL);
+}
+
+template <class Item>
+Item List<Item>::Next() {
+
+	if (!nextElement) {
+		printf("La cagaste con la iteracion de list");
+		ASSERT(false);
+	}
+
+	currentElement = nextElement;
+	nextElement = nextElement->next;
+	return currentElement->item;
+}
+
+template <class Item>
+void List<Item>::RemoveCurrent() {
+	if (!currentElement) {
+		printf("La cagaste con la iteracion de list");
+		ASSERT(false);
+	}
+
+	ListElement<Item> *element = currentElement;
+	ListElement<Item> *previousElement = element->previous;
+	ListElement<Item> *_nextElement = element->next;
+	if(previousElement != NULL){
+		previousElement->next = _nextElement;
+	} else {
+		first = _nextElement;
+	}
+	if(_nextElement != NULL){
+		_nextElement->previous = previousElement;
+	} else {
+		last = previousElement;
+	}
+	Item thing = element->item;
+	delete element;
 }
 
 //----------------------------------------------------------------------
@@ -353,16 +341,6 @@ List<Item>::SortedRemove(int *keyPtr)
         *keyPtr = element->key;
     delete element;
     return thing;
-}
-
-template <class Item>
-Iterator<Item>* List<Item>::GetIterator(){
-	if (iterator == NULL) {
-		iterator = new Iterator<Item>(first);
-	} else {
-		iterator->Restart(first);
-	}
-	return iterator;
 }
 
 

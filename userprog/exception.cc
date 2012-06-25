@@ -146,12 +146,15 @@ ExceptionHandler(ExceptionType which)
     	printException(which);
     	ASSERT(false);
     }
+    delete [] chars;
 }
 
 void readStringFromMem(char *str, int reg) {
 	int cont = 0;
+	int buf;
 	while(true){
-		machine->ReadMem(machine->ReadRegister(reg) + cont,1, (int *)&str[cont]);
+		machine->ReadMem(machine->ReadRegister(reg) + cont,1, &buf);
+		str[cont] = (char) buf;
 		if (str[cont] == '\0')
 		  break;
 		cont++;
@@ -160,8 +163,10 @@ void readStringFromMem(char *str, int reg) {
 
 void readCharsFromMem(char *chars, int size, int reg) {
 	int cont = 0;
+	int buf;
 	while(cont < size){
-		machine->ReadMem(machine->ReadRegister(reg) + cont,1, (int *)&chars[cont]);
+		machine->ReadMem(machine->ReadRegister(reg) + cont,1, &buf);
+		chars[cont] = (char) buf;
 		cont++;
 	}
 }
@@ -169,7 +174,7 @@ void readCharsFromMem(char *chars, int size, int reg) {
 bool writeCharsToMem(char *str, int size, int addr) {
 	int count = 0;
 	while(count < size) {
-		if(!machine->WriteMem(addr + count, 1, (int)str[count]))
+		if(!machine->WriteMem(addr + count, 1, (int)str[count])) // Hay que ver que onda acá!!!
 			return false;
 		count++;
 	}

@@ -1,6 +1,7 @@
 #include "syscall.h"
 
 int pruebaExec();
+int pruebaExec2();
 void pruebaJoin(SpaceId id);
 void prueba1();
 void prueba2();
@@ -9,13 +10,18 @@ int main()
 {
 	SpaceId id;
 	id = pruebaExec();
+	pruebaExec2();
 //	pruebaJoin(id);
-	prueba2();
+//	prueba2();
     Exit(1);
 }
 
 int pruebaExec(){
 	return Exec("./test/pruebasSyscall");
+}
+
+int pruebaExec2(){
+	return Exec("./test/masPruebasSyscall");
 }
 
 void pruebaJoin(SpaceId id){

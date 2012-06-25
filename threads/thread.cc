@@ -58,10 +58,11 @@ Thread::Thread(const char* debugName,bool isJoinable, PrioridadHilo prio) {
 void Thread::constructor(const char* debugName,bool isJoinable, PrioridadHilo prio) {
 
 	threadId = getNextId();
-
+	parent = NULL;
 	prioridad = prio;
 	mustMakeJoin = isJoinable;
 	isWaittingJoinFromParentToFinish = false;
+
 	if (mustMakeJoin){//solo son usadas por los hilos que deben esperar ser joineados
 		this->conditionLock = new Lock(debugName);
 		this->condition = new Condition(debugName,conditionLock);
