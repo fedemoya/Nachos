@@ -61,7 +61,7 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    char *chars = new char(100);
+    char *chars = new char[100];
     int bufferAddr;
     int openFileId, size, status;
     int spaceId;
@@ -153,11 +153,15 @@ void readStringFromMem(char *str, int reg) {
 	int cont = 0;
 	int buf;
 	while(true){
-		machine->ReadMem(machine->ReadRegister(reg) + cont,1, &buf);
+		if(!machine->ReadMem(machine->ReadRegister(reg) + cont,1, &buf)){
+			printf("Error machine->ReadMem");
+			ASSERT(false);
+		}
 		str[cont] = (char) buf;
 		if (str[cont] == '\0')
 		  break;
 		cont++;
+		DEBUG('z', "cont en readStringFromMem %d\n", cont);
 	}
 }
 
