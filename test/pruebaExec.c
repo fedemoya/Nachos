@@ -9,25 +9,34 @@ void prueba2();
 int main()
 {
 	SpaceId id;
-	id = pruebaExec();
-	pruebaExec2();
+	id = pruebaExec2();
 //	pruebaJoin(id);
 //	prueba2();
     Exit(1);
 }
 
-int pruebaExec(){
-	return Exec("./test/pruebasSyscall");
-}
+//~ int pruebaExec(){
+	//~ return Exec("./test/pruebasSyscall");
+//~ }
 
 int pruebaExec2(){
-	return Exec("./test/masPruebasSyscall");
+	char algoParaEscribir[2][5];
+	algoParaEscribir[0][0]="h";
+	algoParaEscribir[0][1]="o";
+	algoParaEscribir[0][2]="l";
+	algoParaEscribir[0][3]="a";
+	algoParaEscribir[0][4]="\0";
+	algoParaEscribir[1][0]="m";
+	algoParaEscribir[1][1]="u";
+	algoParaEscribir[1][2]="n";
+	algoParaEscribir[1][3]="d";
+	algoParaEscribir[1][4]="\0";
+	return Exec("./test/masPruebasSyscall",2,algoParaEscribir);
 }
 
 void pruebaJoin(SpaceId id){
 	Join(id);
 }
-
 
 void prueba1(){
 	char algoParaEscribir[100];

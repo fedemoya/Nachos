@@ -76,6 +76,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
     size = numPages * PageSize;
 
 	//--{ smb 26/04/2012
+	mainVirtDirArgv = size;//en esta direccion pondremos los argumentos en caso de necesitarse
+	
 	unsigned int NumPhysPagesLibres =  machine->bitMapPagMemAdmin->NumClear();
 //ya no son todas las paginas para un solo proceso
 // ASSERT(numPages <= NumPhysPages);		// check we're not trying
@@ -152,6 +154,97 @@ AddrSpace::AddrSpace(OpenFile *executable)
     }
 }
 
+
+bool AddrSpace::ApilarArgumentos(int argc,char**argv) {
+	int tamanioTotalArgs=0;
+	for(int i;i<argc;i++) {
+		tamanioTotalArgs+= strlen(argv[i]);
+		 
+	}
+	DEBUG('a', "Extra size argumentos Exec igual a %d bytes, para %d cant de argumentos \n", tamanioTotalArgs,argc);
+	
+	if (!AumentarEspacio(tamanioTotalArgs))
+		return false;
+	
+	mainArgc = argc;
+	
+	int contOffSet = 0;
+	int indStr = 0;
+	for (int nroArg = 0; nroArg < argc; nroArg++) {
+			 indStr = 0;		 
+			 while (argv[nroArg][indStr] !='\0') {
+				int virtAddr = mainVirtDirArgv + contOffSet;
+				machine->mainMemory[ traducirVirDir2PhisDir(virtAddr)] = argv[nroArg][indStr];
+				contOffSet++;	
+				indStr++;
+			 }
+	}
+	return true;
+}
+
+int AddrSpace::traducirVirDir2PhisDir (int virtAddr) {
+	 unsigned int vpn = (unsigned) virtAddr / PageSize;
+	 unsigned int offset = (unsigned) virtAddr % PageSize;
+	 int pageFrame = pageTable[vpn].physicalPage;
+	 int physAddr = pageFrame * PageSize + offset;
+	 return physAddr;
+}
+
+bool AddrSpace::AumentarEspacio(int tamanio) {
+	int i;
+	int aumPages = divRoundUp(tamanio, PageSize);
+	TranslationEntry *newPageTable;
+
+	//No hay suficiente espacio en memoria
+	if(aumPages > machine->bitMapPagMemAdmin->NumClear())
+		return false;
+
+	ASSERT(numPages + aumPages  <= NumPhysPages);
+
+	newPageTable = new TranslationEntry[numPages + aumPages];
+
+	for (i = 0; i < numPages; i++) {
+		newPageTable[i].virtualPage = pageTable[i].virtualPage;
+		newPageTable[i].physicalPage = pageTable[i].physicalPage;
+		newPageTable[i].valid = pageTable[i].valid;
+		newPageTable[i].use = pageTable[i].use;
+		newPageTable[i].dirty = pageTable[i].dirty;
+		newPageTable[i].readOnly = pageTable[i].readOnly;			
+	}
+	for (; i < aumPages; i++) {
+		newPageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+		//--{ smb 26/04/2012
+		int numNextPagFisicaLibre = machine->bitMapPagMemAdmin->Find(); 
+		newPageTable[i].physicalPage = numNextPagFisicaLibre;
+		machine->bitMapPagMemAdmin->Mark(numNextPagFisicaLibre);
+		//--} smb 26/04/2012	
+		newPageTable[i].valid = true;
+		newPageTable[i].use = false;
+		newPageTable[i].dirty = false;
+		newPageTable[i].readOnly = false;  // if the code segment was entirely on 
+						// a separate page, we could set its 
+						// pages to be read-only
+    }
+	
+	// Inicializo la totalidad de la memoria física asignada al proceso, para 
+	// que quede en cero la parte de la data no inicializada y el stack.
+    for (i = numPages; i < aumPages; i++) 
+		bzero(&(machine->mainMemory[((newPageTable[i].physicalPage) * PageSize)]), PageSize);
+
+	delete []pageTable;
+	pageTable = newPageTable;
+	numPages += aumPages;
+	return true;
+}
+
+int AddrSpace::ObtenerArgc() {
+	return mainArgc;
+}
+
+int AddrSpace::ObtenerVirtDirArgv() {
+	return mainVirtDirArgv;
+}
+    
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
 // 	Dealloate an address space.  Nothing for now!

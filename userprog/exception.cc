@@ -26,10 +26,12 @@
 #include "syscall.h"
 #include "nuestraSyscallImpl.h"
 
-void readStringFromMem(char *buf, int reg);
+void readStringFromReg(char *buf, int reg);
+void readStringFromDirMem(char *str, int dir);
 void readCharsFromMem(char *buf, int size, int reg);
 bool writeCharsToMem(char *str, int size, int addr);
 void incrementarPC();
+bool readArgsFromMem(int dir, char ***argv, int numArgs);
 
 void printException(int);
 
@@ -62,6 +64,12 @@ ExceptionHandler(ExceptionType which)
     int type = machine->ReadRegister(2);
 
     char *chars = new char(100);
+//Exec
+	int argc;
+	int dirArgv;
+	char**argv;
+	
+//Exec
     int bufferAddr;
     int openFileId, size, status;
     int spaceId;
@@ -79,13 +87,13 @@ ExceptionHandler(ExceptionType which)
     			break;
     		case SC_Create :
     			/* para depuración */ printf("Se ejecuto CREATE\n");
-    			readStringFromMem(chars, 4);
+    			readStringFromReg(chars, 4);
     			nuestroFilesys->nuestraCreate(chars);
     			incrementarPC();
     			break;
     		case SC_Open :
     			/* para depuración */ printf("Se ejecuto OPEN\n");
-    			readStringFromMem(chars, 4);
+    			readStringFromReg(chars, 4);
 				openFileId = nuestroFilesys->nuestraOpen(chars);
 				machine->WriteRegister(2, openFileId);
 				incrementarPC();
@@ -115,13 +123,28 @@ ExceptionHandler(ExceptionType which)
     			nuestroFilesys->nuestraClose(openFileId);
 				incrementarPC();
 				break;
-    		case SC_Exec :
+    		//~ case SC_Exec :
+    			//~ /* para depuración */ printf("Se ejecuto EXEC\n");
+    			//~ readStringFromReg(chars, 4);
+    			//~ spaceId = nuestraExec(chars);
+				//~ machine->WriteRegister(2, spaceId);
+				//~ incrementarPC();
+    			//~ break;
+    		case SC_Exec:
     			/* para depuración */ printf("Se ejecuto EXEC\n");
-    			readStringFromMem(chars, 4);
-    			spaceId = nuestraExec(chars);
+    			readStringFromReg(chars, 4);
+    			argc = machine->ReadRegister(5);
+    			argv = new char*[argc + 1];
+				for (int i = 0; i < argc; i++){
+					argv[i] = new char[100];
+				}
+    			dirArgv = machine->ReadRegister(6);
+    			if (readArgsFromMem(dirArgv,&argv,argc))
+					printf("ERROR al intentar leer argumentos de Exec.\n");
+    			spaceId = nuestraExecWithArgs(chars,argc,argv);
 				machine->WriteRegister(2, spaceId);
 				incrementarPC();
-    			break;
+				break;
     		case SC_Exit:
     			/* para depuración */ printf("Se ejecuto EXIT\n");
     			status = machine->ReadRegister(4);
@@ -147,13 +170,18 @@ ExceptionHandler(ExceptionType which)
     	ASSERT(false);
     }
     delete [] chars;
+    delete [] argv;
 }
 
-void readStringFromMem(char *str, int reg) {
+void readStringFromReg(char *str, int reg) {
+	readStringFromDirMem(str,machine->ReadRegister(reg));
+}
+
+void readStringFromDirMem(char *str, int dir)  {
 	int cont = 0;
 	int buf;
 	while(true){
-		machine->ReadMem(machine->ReadRegister(reg) + cont,1, &buf);
+		machine->ReadMem(dir + cont,1, &buf);
 		str[cont] = (char) buf;
 		if (str[cont] == '\0')
 		  break;
@@ -184,6 +212,37 @@ bool writeCharsToMem(char *str, int size, int addr) {
 void incrementarPC() {
     machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
 }
+
+bool readArgsFromMem(int dir, char ***pargv, int numArgs)  {
+	int virtDir;	
+    machine->ReadMem(dir, 4, &virtDir);// Rescatamos el char **pargv
+	
+	//~ if(!readStringFromDirMem(**pargv,virtDir))
+		//~ return false;
+	//readStringFromDirMem(**pargv,virtDir);
+	
+	int cont = 0;
+	while(cont < numArgs) {
+		int dirProxArg;
+		machine->ReadMem(virtDir + 4*cont, 4, &dirProxArg);
+		readStringFromDirMem( *pargv[cont] ,dirProxArg);
+		cont++;
+	}
+		
+	//~ int i;
+	//~ for(i = 0; i < numArgs && (*(*pargv +i) != (char *) 0); i++) { 	
+		//~ int physicalAddress;	
+		//~ /*physicalAddress la direccion fisica del argumento i (su ubicación en el arreglo mainMemory)*/
+		//~ machine->Translate(dir + 4*i, &physicalAddress, 4, true);
+		//~ /*virtDir direccion de memoria de mainMemory ubicada en physicalAddress*/
+		//~ virtDir = *(unsigned int *) &machine->mainMemory[physicalAddress];
+		//~ if (!readStringFromDirMem(*(*pargv +i),virtDir) )
+			//~ return false;
+		//~ readStringFromDirMem(*(*pargv +i),virtDir);
+	//~ }
+	//~ *(*pargv + i) = NULL;
+	return true;
+} 
 
 void printException(int which) {
 	switch(which){

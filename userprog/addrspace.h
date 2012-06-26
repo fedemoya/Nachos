@@ -30,12 +30,21 @@ class AddrSpace {
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
+    
+    bool ApilarArgumentos(int argc,char**argv);
+    int ObtenerArgc();
+    int ObtenerVirtDirArgv();
 
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
+	int mainArgc;
+	int mainVirtDirArgv;
+	
+	int traducirVirDir2PhisDir (int virtAddr);
+	bool AumentarEspacio(int tamanio);
 };
 
 #endif // ADDRSPACE_H

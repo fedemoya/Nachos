@@ -64,6 +64,8 @@ typedef int SpaceId;
 
 SpaceId nuestraExec(char *name);
 
+SpaceId nuestraExecWithArgs(char *filename,int argc,char**argv);
+
 void nuestraExit(int status);
 
 int nuestraJoin(SpaceId id);

@@ -160,7 +160,7 @@ SpaceId nuestraExec(char *filename) {
 
 	if (executable == NULL) {
 		printf("Unable to open file %s\n", filename);
-		return 0;
+		return -1;
 	}
 
 	space = new AddrSpace(executable);
@@ -185,6 +185,72 @@ SpaceId nuestraExec(char *filename) {
     return spaceData->key;
 }
 
+void runInChildThreadWithArgs(void*);
+
+SpaceId nuestraExecWithArgs(char *filename,int argc,char**argv) {
+
+	static Thread* newThread;
+	static AddrSpace* space;
+	SpaceData* spaceData;
+
+	OpenFile *executable = fileSystem->Open(filename);
+
+	if (executable == NULL) {
+		printf("Unable to open file %s\n", filename);
+		return -1;
+	}
+
+	space = new AddrSpace(executable);
+	
+	if(argc < 0) {
+		printf("Argc debe ser un numero no negativo\n");
+		return -1;
+	} 
+	
+	if(!space->ApilarArgumentos(argc,argv)) {
+		printf("Error al copiar argumentos al stack\n");
+		return -1;
+	}
+	
+	
+	delete executable;			// close file
+
+	if (spaceList == NULL) {
+    	spaceList = new List<SpaceData*>;
+    }
+
+    spaceData = new SpaceData;
+
+    newThread = new Thread (filename, true);
+
+    spaceData->key = newThread->getId();
+    spaceData->thread = newThread;
+	spaceList->Append(spaceData);
+
+	newThread->Fork(runInChildThreadWithArgs, (void *)space);
+
+	currentThread->Yield();
+
+    return spaceData->key;
+}
+
+
+void runInChildThreadWithArgs(void* space) {
+	printf("Aca deberia aparecer el nombre del arhivo a ejecutar: %s\n",currentThread->getName());
+
+    currentThread->space = (AddrSpace *) space;
+
+    currentThread->space->InitRegisters();		// set the initial register values
+    currentThread->space->RestoreState();		// load page table register
+	
+	machine->WriteRegister(4, currentThread->space->ObtenerArgc());
+	machine->WriteRegister(5, currentThread->space->ObtenerVirtDirArgv());
+	
+    machine->Run();			// jump to the user progam
+    printf("La funcion startProcess llego al assert\n");
+    ASSERT(false);
+}
+
 void runInChildThread(void* space) {
 
 	printf("Aca deberia aparecer el nombre del arhivo a ejecutar: %s\n",currentThread->getName());
@@ -193,7 +259,7 @@ void runInChildThread(void* space) {
 
     currentThread->space->InitRegisters();		// set the initial register values
     currentThread->space->RestoreState();		// load page table register
-
+    
     machine->Run();			// jump to the user progam
     printf("La funcion startProcess llego al assert\n");
     ASSERT(false);
