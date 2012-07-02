@@ -69,7 +69,7 @@ OpenFileId NuestroFilesys::nuestraOpen(char *name) {
 	}
 	OpenFile *openFile = fileSystem->Open(name);
 	OpenFileData *openFileData = new OpenFileData;
-	openFileData->name = new char(100);
+	openFileData->name = new char[100];
 	strcpy(openFileData->name, name);
 	openFileData->id = ++ultimoId;
 	openFileData->openFile = openFile;
@@ -227,8 +227,8 @@ SpaceId nuestraExecWithArgs(char *filename,int argc,char**argv) {
     spaceData->thread = newThread;
 	spaceList->Append(spaceData);
 
-	newThread->Fork(runInChildThreadWithArgs, (void *)space);
-	//~ newThread->Fork(runInChildThread, (void *)space);
+	//~ newThread->Fork(runInChildThreadWithArgs, (void *)space);
+	newThread->Fork(runInChildThread, (void *)space);
 
 	currentThread->Yield();
 

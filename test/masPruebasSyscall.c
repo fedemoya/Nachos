@@ -3,15 +3,15 @@
 int main(int argc,char**argv)
 {
 	int i;
-	//~ char algoParaEscribir[100];
-	//~ algoParaEscribir[0] = 'X';
-	//~ algoParaEscribir[1] = 'Y';
-	//~ algoParaEscribir[2] = 'Z';
-	//~ Write(algoParaEscribir, 3, ConsoleOutput);
+	char algoParaEscribir[100];
+	algoParaEscribir[0] = 'X';
+	algoParaEscribir[1] = 'Y';
+	algoParaEscribir[2] = 'Z';
+	Write(algoParaEscribir, 3, ConsoleOutput);
 	
-	for(i=0;i<argc;i++)
-		Write(argv[i], 4, ConsoleOutput);
-		
+	//~ for(i=0;i<argc;i++)
+		//~ Write(argv[i], 4, ConsoleOutput);
+		//~ 
 	//~ char algoParaEscribir[100];
 	//~ char buffer[100];
 	//~ int id0, id1, id2;
