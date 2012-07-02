@@ -69,7 +69,7 @@ OpenFileId NuestroFilesys::nuestraOpen(char *name) {
 	}
 	OpenFile *openFile = fileSystem->Open(name);
 	OpenFileData *openFileData = new OpenFileData;
-	openFileData->name = new char(100);
+	openFileData->name = new char[100];
 	strcpy(openFileData->name, name);
 	openFileData->id = ++ultimoId;
 	openFileData->openFile = openFile;
