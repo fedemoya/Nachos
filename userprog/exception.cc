@@ -26,9 +26,9 @@
 #include "syscall.h"
 #include "nuestraSyscallImpl.h"
 
-void readStringFromReg(char *buf, int reg);
-void readStringFromDirMem(char *str, int dir);
-void readCharsFromMem(char *buf, int size, int reg);
+bool readStringFromReg(char *buf, int reg);
+bool readStringFromDirMem(char *str, int dir);
+bool readCharsFromMem(char *buf, int size, int reg);
 bool writeCharsToMem(char *str, int size, int addr);
 void incrementarPC();
 bool readArgsFromMem(int dir, char ***argv, int numArgs);
@@ -63,7 +63,7 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    char *chars = new char(100);
+    char *chars = new char[100];
 //Exec
 	int argc;
 	int dirArgv;
@@ -112,7 +112,11 @@ ExceptionHandler(ExceptionType which)
     		case SC_Write :
     			/* para depuración */ printf("Se ejecuto WRITE\n");
 				size = machine->ReadRegister(5);
-				readCharsFromMem(chars, size, 4); // TODO size no puede ser > 100
+				if (!readCharsFromMem(chars, size, 4)) { // TODO size no puede ser > 100
+					printf("ERROR al intentar leer argumentos de Write.\n");
+					ASSERT(false);
+				}
+				
 				openFileId = machine->ReadRegister(6);
 				nuestroFilesys->nuestraWrite(chars, size, openFileId);
 				incrementarPC();
@@ -139,8 +143,10 @@ ExceptionHandler(ExceptionType which)
 					argv[i] = new char[100];
 				}
     			dirArgv = machine->ReadRegister(6);
-    			if (readArgsFromMem(dirArgv,&argv,argc))
+    			if (!readArgsFromMem(dirArgv,&argv,argc)) {
 					printf("ERROR al intentar leer argumentos de Exec.\n");
+					ASSERT(false);
+				}				
     			spaceId = nuestraExecWithArgs(chars,argc,argv);
 				machine->WriteRegister(2, spaceId);
 				incrementarPC();
@@ -173,30 +179,35 @@ ExceptionHandler(ExceptionType which)
     delete [] argv;
 }
 
-void readStringFromReg(char *str, int reg) {
-	readStringFromDirMem(str,machine->ReadRegister(reg));
+bool readStringFromReg(char *str, int reg) {
+	return readStringFromDirMem(str,machine->ReadRegister(reg));
 }
 
-void readStringFromDirMem(char *str, int dir)  {
+//se le debe pasar una virtual y ReadMem hace la traduccion
+bool readStringFromDirMem(char *str, int dir)  {
 	int cont = 0;
 	int buf;
 	while(true){
-		machine->ReadMem(dir + cont,1, &buf);
+		if (!machine->ReadMem(dir + cont,1, &buf)) 
+			return false;
 		str[cont] = (char) buf;
 		if (str[cont] == '\0')
 		  break;
 		cont++;
 	}
+	return true;
 }
 
-void readCharsFromMem(char *chars, int size, int reg) {
+bool readCharsFromMem(char *chars, int size, int reg) {
 	int cont = 0;
 	int buf;
 	while(cont < size){
-		machine->ReadMem(machine->ReadRegister(reg) + cont,1, &buf);
+		if(!machine->ReadMem(machine->ReadRegister(reg) + cont,1, &buf)) 
+			return false;
 		chars[cont] = (char) buf;
 		cont++;
 	}
+	return true;
 }
 
 bool writeCharsToMem(char *str, int size, int addr) {
@@ -214,33 +225,15 @@ void incrementarPC() {
 }
 
 bool readArgsFromMem(int dir, char ***pargv, int numArgs)  {
-	int virtDir;	
-    machine->ReadMem(dir, 4, &virtDir);// Rescatamos el char **pargv
-	
-	//~ if(!readStringFromDirMem(**pargv,virtDir))
-		//~ return false;
-	//readStringFromDirMem(**pargv,virtDir);
-	
 	int cont = 0;
+	int strLenCont = 0;
 	while(cont < numArgs) {
-		int dirProxArg;
-		machine->ReadMem(virtDir + 4*cont, 4, &dirProxArg);
-		readStringFromDirMem( *pargv[cont] ,dirProxArg);
+		if (!readStringFromDirMem( (*pargv)[cont] ,dir + strLenCont))
+			return false;
+		strLenCont+= strlen((*pargv)[cont])+1;
+		printf("%s \n",(*pargv)[cont]);
 		cont++;
-	}
-		
-	//~ int i;
-	//~ for(i = 0; i < numArgs && (*(*pargv +i) != (char *) 0); i++) { 	
-		//~ int physicalAddress;	
-		//~ /*physicalAddress la direccion fisica del argumento i (su ubicación en el arreglo mainMemory)*/
-		//~ machine->Translate(dir + 4*i, &physicalAddress, 4, true);
-		//~ /*virtDir direccion de memoria de mainMemory ubicada en physicalAddress*/
-		//~ virtDir = *(unsigned int *) &machine->mainMemory[physicalAddress];
-		//~ if (!readStringFromDirMem(*(*pargv +i),virtDir) )
-			//~ return false;
-		//~ readStringFromDirMem(*(*pargv +i),virtDir);
-	//~ }
-	//~ *(*pargv + i) = NULL;
+	}		
 	return true;
 } 
 

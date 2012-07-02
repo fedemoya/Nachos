@@ -21,16 +21,16 @@ int main()
 
 int pruebaExec2(){
 	char algoParaEscribir[2][5];
-	algoParaEscribir[0][0]="h";
-	algoParaEscribir[0][1]="o";
-	algoParaEscribir[0][2]="l";
-	algoParaEscribir[0][3]="a";
-	algoParaEscribir[0][4]="\0";
-	algoParaEscribir[1][0]="m";
-	algoParaEscribir[1][1]="u";
-	algoParaEscribir[1][2]="n";
-	algoParaEscribir[1][3]="d";
-	algoParaEscribir[1][4]="\0";
+	algoParaEscribir[0][0]='h';
+	algoParaEscribir[0][1]='o';
+	algoParaEscribir[0][2]='l';
+	algoParaEscribir[0][3]='a';
+	algoParaEscribir[0][4]='\0';
+	algoParaEscribir[1][0]='m';
+	algoParaEscribir[1][1]='u';
+	algoParaEscribir[1][2]='n';
+	algoParaEscribir[1][3]='d';
+	algoParaEscribir[1][4]='\0';
 	return Exec("./test/masPruebasSyscall",2,algoParaEscribir);
 }
 
@@ -43,7 +43,7 @@ void prueba1(){
 	algoParaEscribir[0] = 'X';
 	algoParaEscribir[1] = 'Y';
 	algoParaEscribir[2] = 'Z';
-	Write(algoParaEscribir, 3, ConsoleOutput);
+	Write(algoParaEscribir, 2, ConsoleOutput);
 }
 
 void prueba2(){

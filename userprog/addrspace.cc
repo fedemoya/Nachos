@@ -157,28 +157,33 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 bool AddrSpace::ApilarArgumentos(int argc,char**argv) {
 	int tamanioTotalArgs=0;
-	for(int i;i<argc;i++) {
-		tamanioTotalArgs+= strlen(argv[i]);
-		 
+	for(int i= 0;i<argc;i++) {
+		tamanioTotalArgs+= strlen(argv[i]) + 1;
 	}
+	
+	aumentoStackArgsExec = tamanioTotalArgs;
+
 	DEBUG('a', "Extra size argumentos Exec igual a %d bytes, para %d cant de argumentos \n", tamanioTotalArgs,argc);
 	
 	if (!AumentarEspacio(tamanioTotalArgs))
 		return false;
 	
 	mainArgc = argc;
-	
+	mainVirtDirArgv =  numPages * PageSize - aumentoStackArgsExec - 16;
 	int contOffSet = 0;
 	int indStr = 0;
 	for (int nroArg = 0; nroArg < argc; nroArg++) {
 			 indStr = 0;		 
-			 while (argv[nroArg][indStr] !='\0') {
+			  do {
 				int virtAddr = mainVirtDirArgv + contOffSet;
 				machine->mainMemory[ traducirVirDir2PhisDir(virtAddr)] = argv[nroArg][indStr];
 				contOffSet++;	
 				indStr++;
-			 }
+			 } while (argv[nroArg][indStr] !='\0');
+			 
 	}
+	DEBUG('a', "Expandemos el address space, num pages %d\n", 
+					numPages);
 	return true;
 }
 
@@ -211,7 +216,7 @@ bool AddrSpace::AumentarEspacio(int tamanio) {
 		newPageTable[i].dirty = pageTable[i].dirty;
 		newPageTable[i].readOnly = pageTable[i].readOnly;			
 	}
-	for (; i < aumPages; i++) {
+	for (; i < numPages + aumPages; i++) {
 		newPageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 		//--{ smb 26/04/2012
 		int numNextPagFisicaLibre = machine->bitMapPagMemAdmin->Find(); 
@@ -289,8 +294,10 @@ AddrSpace::InitRegisters()
    // Set the stack register to the end of the address space, where we
    // allocated the stack; but subtract off a bit, to make sure we don't
    // accidentally reference off the end!
-    machine->WriteRegister(StackReg, numPages * PageSize - 16);
-    DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - 16);
+    //~ machine->WriteRegister(StackReg, numPages * PageSize - 16);
+    int restaStack = divRoundUp(aumentoStackArgsExec,4);
+    machine->WriteRegister(StackReg, numPages * PageSize - restaStack*4 -16);
+    DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - restaStack*4  - 16);
 }
 
 //----------------------------------------------------------------------

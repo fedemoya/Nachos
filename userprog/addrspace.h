@@ -42,6 +42,7 @@ class AddrSpace {
 					// address space
 	int mainArgc;
 	int mainVirtDirArgv;
+	int aumentoStackArgsExec;
 	
 	int traducirVirDir2PhisDir (int virtAddr);
 	bool AumentarEspacio(int tamanio);
