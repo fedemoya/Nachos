@@ -180,7 +180,7 @@ SpaceId nuestraExec(char *filename) {
 
 	newThread->Fork(runInChildThread, (void *)space);
 
-	currentThread->Yield();
+//	currentThread->Yield();
 
     return spaceData->key;
 }

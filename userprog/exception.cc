@@ -26,6 +26,9 @@
 #include "syscall.h"
 #include "nuestraSyscallImpl.h"
 
+
+void syscallExceptionHandler();
+
 bool readStringFromReg(char *buf, int reg);
 bool readStringFromDirMem(char *str, int dir);
 bool readCharsFromMem(char *buf, int size, int reg);
@@ -61,122 +64,142 @@ void printException(int);
 void
 ExceptionHandler(ExceptionType which)
 {
-    int type = machine->ReadRegister(2);
-
-    char *chars = new char[100];
-//Exec
-	int argc;
-	int dirArgv;
-	char**argv;
-	
-//Exec
-    int bufferAddr;
-    int openFileId, size, status;
-    int spaceId;
-
-    static NuestroFilesys *nuestroFilesys = NULL;
-    if(nuestroFilesys == NULL) {
-    	nuestroFilesys = new NuestroFilesys;
-    }
-
-    if (which == SyscallException) {
-    	switch (type) {
-    		case SC_Halt :
-    			DEBUG('a', "Shutdown, initiated by user program.\n");
-    			interrupt->Halt();
-    			break;
-    		case SC_Create :
-    			/* para depuración */ printf("Se ejecuto CREATE\n");
-    			readStringFromReg(chars, 4);
-    			nuestroFilesys->nuestraCreate(chars);
-    			incrementarPC();
-    			break;
-    		case SC_Open :
-    			/* para depuración */ printf("Se ejecuto OPEN\n");
-    			readStringFromReg(chars, 4);
-				openFileId = nuestroFilesys->nuestraOpen(chars);
-				machine->WriteRegister(2, openFileId);
-				incrementarPC();
-    			break;
-    		case SC_Read :
-				/* para depuración */ printf("Se ejecuto READ\n");
-				bufferAddr = machine->ReadRegister(4);
-				size = machine->ReadRegister(5);
-				openFileId = machine->ReadRegister(6);
-				nuestroFilesys->nuestraRead(chars, size, openFileId); // TODO size no puede ser > 100
-				if(!writeCharsToMem(chars, size, bufferAddr)){
-					printf("ERROR al intentar escribir en memoria.\n");
-				}
-				incrementarPC();
-				break;
-    		case SC_Write :
-    			/* para depuración */ printf("Se ejecuto WRITE\n");
-				size = machine->ReadRegister(5);
-				if (!readCharsFromMem(chars, size, 4)) { // TODO size no puede ser > 100
-					printf("ERROR al intentar leer argumentos de Write.\n");
-					ASSERT(false);
-				}
-				
-				openFileId = machine->ReadRegister(6);
-				nuestroFilesys->nuestraWrite(chars, size, openFileId);
-				incrementarPC();
-				break;
-    		case SC_Close :
-    			/* para depuración */ printf("Se ejecuto CLOSE\n");
-    			openFileId = machine->ReadRegister(4);
-    			nuestroFilesys->nuestraClose(openFileId);
-				incrementarPC();
-				break;
-    		//~ case SC_Exec :
-    			//~ /* para depuración */ printf("Se ejecuto EXEC\n");
-    			//~ readStringFromReg(chars, 4);
-    			//~ spaceId = nuestraExec(chars);
-				//~ machine->WriteRegister(2, spaceId);
-				//~ incrementarPC();
-    			//~ break;
-    		case SC_Exec:
-    			/* para depuración */ printf("Se ejecuto EXEC\n");
-    			readStringFromReg(chars, 4);
-    			argc = machine->ReadRegister(5);
-    			argv = new char*[argc + 1];
-				for (int i = 0; i < argc; i++){
-					argv[i] = new char[100];
-				}
-    			dirArgv = machine->ReadRegister(6);
-    			if (!readArgsFromMem(dirArgv,&argv,argc)) {
-					printf("ERROR al intentar leer argumentos de Exec.\n");
-					ASSERT(false);
-				}				
-    			spaceId = nuestraExecWithArgs(chars,argc,argv);
-				machine->WriteRegister(2, spaceId);
-				incrementarPC();
-				break;
-    		case SC_Exit:
-    			/* para depuración */ printf("Se ejecuto EXIT\n");
-    			status = machine->ReadRegister(4);
-    			nuestraExit(status);
-    			incrementarPC();
-    			break;
-    		case SC_Join:
-    			/* para depuración */ printf("Se ejecuto JOIN\n");
-    			spaceId = machine->ReadRegister(4);
-    			status = nuestraJoin(spaceId);
-    			machine->WriteRegister(2,status);
-    			incrementarPC();
-    			break;
-    		default :
-    			ASSERT(false);
-    	}
-
-    } else {
+	int vAddrs; // Dirección virtual que debemos traducir.
+    switch(which) {
+    	case SyscallException:
+    		syscallExceptionHandler();
+    		break;
+    	case PageFaultException:
+    		DEBUG('z', "PageFault Trap\n");
+    		vAddrs = machine->ReadRegister(BadVAddrReg);
+    		// hay que traducir la vAddrs a una pAddrs
+    		// hay que escribir en la tlb la pAddrs
+    		// Importante! Hay que limpiar la tlb en cada
+    		// cambio de contexto.
+    		//
+    		// A la hora de leer, osea machine->ReadMem,
+    		// si la lectura dio falle, osea ReadMem retorno falso,
+    		// hay que reintentar(?)
+    		break;
+    	default:
     	// TODO Manejar el resto de las excepciones.
     	// Al menos las que puedan ser disparadas por el método Translate.
     	printf("Unexpected user mode exception -> ");
     	printException(which);
     	ASSERT(false);
     }
+}
+
+void syscallExceptionHandler() {
+
+	int type = machine->ReadRegister(2);
+
+	char *chars = new char[100];
+	
+	//Exec
+	int argc;
+	int dirArgv;
+	char**argv;
+	
+	//Exec
+    int bufferAddr;
+    int openFileId, size, status;
+    int spaceId;
+
+	static NuestroFilesys *nuestroFilesys = NULL;
+	if(nuestroFilesys == NULL) {
+		nuestroFilesys = new NuestroFilesys;
+	}
+
+	switch (type) {
+		case SC_Halt :
+			DEBUG('a', "Shutdown, initiated by user program.\n");
+			interrupt->Halt();
+			break;
+		case SC_Create :
+			/* para depuración */ printf("Se ejecuto CREATE\n");
+			readStringFromReg(chars, 4);
+			nuestroFilesys->nuestraCreate(chars);
+			incrementarPC();
+			break;
+		case SC_Open :
+			/* para depuración */ printf("Se ejecuto OPEN\n");
+			readStringFromReg(chars, 4);
+			openFileId = nuestroFilesys->nuestraOpen(chars);
+			machine->WriteRegister(2, openFileId);
+			incrementarPC();
+			break;
+		case SC_Read :
+			/* para depuración */ printf("Se ejecuto READ\n");
+			bufferAddr = machine->ReadRegister(4);
+			size = machine->ReadRegister(5);
+			openFileId = machine->ReadRegister(6);
+			nuestroFilesys->nuestraRead(chars, size, openFileId); // TODO size no puede ser > 100
+			if(!writeCharsToMem(chars, size, bufferAddr)){
+				printf("ERROR al intentar escribir en memoria.\n");
+			}
+			incrementarPC();
+			break;
+		case SC_Write :
+			/* para depuración */ printf("Se ejecuto WRITE\n");
+			size = machine->ReadRegister(5);
+			if (!readCharsFromMem(chars, size, 4)) { // TODO size no puede ser > 100
+				printf("ERROR al intentar leer argumentos de Write.\n");
+				ASSERT(false);
+			}
+			
+			openFileId = machine->ReadRegister(6);
+			nuestroFilesys->nuestraWrite(chars, size, openFileId);
+			incrementarPC();
+			break;
+		case SC_Close :
+			/* para depuración */ printf("Se ejecuto CLOSE\n");
+			openFileId = machine->ReadRegister(4);
+			nuestroFilesys->nuestraClose(openFileId);
+			incrementarPC();
+			break;
+		//~ case SC_Exec :
+			//~ /* para depuración */ printf("Se ejecuto EXEC\n");
+			//~ readStringFromReg(chars, 4);
+			//~ spaceId = nuestraExec(chars);
+			//~ machine->WriteRegister(2, spaceId);
+			//~ incrementarPC();
+			//~ break;
+		case SC_Exec:
+			/* para depuración */ printf("Se ejecuto EXEC\n");
+			readStringFromReg(chars, 4);
+			argc = machine->ReadRegister(5);
+			argv = new char*[argc + 1];
+			for (int i = 0; i < argc; i++){
+				argv[i] = new char[100];
+			}
+			dirArgv = machine->ReadRegister(6);
+			if (!readArgsFromMem(dirArgv,&argv,argc)) {
+				printf("ERROR al intentar leer argumentos de Exec.\n");
+				ASSERT(false);
+			}				
+			spaceId = nuestraExecWithArgs(chars,argc,argv);
+			machine->WriteRegister(2, spaceId);
+			delete [] argv;
+			incrementarPC();
+			break;
+		case SC_Exit:
+			/* para depuración */ printf("Se ejecuto EXIT\n");
+			status = machine->ReadRegister(4);
+			nuestraExit(status);
+			incrementarPC();
+			break;
+		case SC_Join:
+			/* para depuración */ printf("Se ejecuto JOIN\n");
+			spaceId = machine->ReadRegister(4);
+			status = nuestraJoin(spaceId);
+			machine->WriteRegister(2,status);
+			incrementarPC();
+			break;
+		default :
+			ASSERT(false);
+	}
     delete [] chars;
-    delete [] argv;
 }
 
 bool readStringFromReg(char *str, int reg) {
