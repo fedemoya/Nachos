@@ -227,8 +227,8 @@ SpaceId nuestraExecWithArgs(char *filename,int argc,char**argv) {
     spaceData->thread = newThread;
 	spaceList->Append(spaceData);
 
-	//~ newThread->Fork(runInChildThreadWithArgs, (void *)space);
-	newThread->Fork(runInChildThread, (void *)space);
+	newThread->Fork(runInChildThreadWithArgs, (void *)space);
+	//~ newThread->Fork(runInChildThread, (void *)space);
 
 	currentThread->Yield();
 
