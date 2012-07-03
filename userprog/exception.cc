@@ -73,6 +73,10 @@ ExceptionHandler(ExceptionType which)
     		// Importante! Hay que limpiar la tlb en cada
     		// cambio de contexto.
     		//
+    		// a partir de vAddrs hay que buscar la entrada en la pageTable que corresponde
+    		// y copiar esa entrada en la tlb. La entrada que sacamos de la tlb hay que
+    		// copiarla a la pageTable.
+    		//
     		// A la hora de leer, osea machine->ReadMem,
     		// si la lectura dio falla, osea ReadMem retorno falso,
     		// hay que reintentar(?)
