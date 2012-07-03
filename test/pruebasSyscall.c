@@ -6,7 +6,7 @@ void prueba3(int);
 
 int main()
 {
-	prueba2();
+	prueba1();
     Exit(2);
 }
 

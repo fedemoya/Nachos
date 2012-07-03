@@ -2,7 +2,7 @@
 
 int main()
 {
-	char algoParaEscribir[100];
+	/*char algoParaEscribir[100];
 	char buffer[100];
 	int id0, id1, id2;
 	const int size = 12;
@@ -24,7 +24,7 @@ int main()
 	Close(id0);
 	Close(id1);
 	Close(id2);
-
+*/
     Exit(2);
 }
 

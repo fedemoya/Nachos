@@ -74,8 +74,9 @@ ExceptionHandler(ExceptionType which)
     		// cambio de contexto.
     		//
     		// A la hora de leer, osea machine->ReadMem,
-    		// si la lectura dio falle, osea ReadMem retorno falso,
+    		// si la lectura dio falla, osea ReadMem retorno falso,
     		// hay que reintentar(?)
+    		// El PC donde queda despues de la interrupción.
     		break;
     	default:
     	// TODO Manejar el resto de las excepciones.

@@ -187,7 +187,7 @@ SpaceId nuestraExec(char *filename) {
 
 void runInChildThread(void* space) {
 
-	printf("Aca deberia aparecer el nombre del arhivo a ejecutar: %s\n",currentThread->getName());
+	//printf("Aca deberia aparecer el nombre del arhivo a ejecutar: %s\n",currentThread->getName());
 
     currentThread->space = (AddrSpace *) space;
 
