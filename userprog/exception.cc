@@ -27,6 +27,7 @@
 #include "nuestraSyscallImpl.h"
 
 void syscallExceptionHandler();
+void pageFaultExceptionHandler();
 void readStringFromMem(char *buf, int reg);
 void readCharsFromMem(char *buf, int size, int reg);
 bool writeCharsToMem(char *str, int size, int addr);
@@ -60,27 +61,12 @@ void printException(int);
 void
 ExceptionHandler(ExceptionType which)
 {
-	int vAddrs; // Dirección virtual que debemos traducir.
-    switch(which) {
+	switch(which) {
     	case SyscallException:
     		syscallExceptionHandler();
     		break;
     	case PageFaultException:
-    		DEBUG('z', "PageFault Trap\n");
-    		vAddrs = machine->ReadRegister(BadVAddrReg);
-    		// hay que traducir la vAddrs a una pAddrs
-    		// hay que escribir en la tlb la pAddrs
-    		// Importante! Hay que limpiar la tlb en cada
-    		// cambio de contexto.
-    		//
-    		// a partir de vAddrs hay que buscar la entrada en la pageTable que corresponde
-    		// y copiar esa entrada en la tlb. La entrada que sacamos de la tlb hay que
-    		// copiarla a la pageTable.
-    		//
-    		// A la hora de leer, osea machine->ReadMem,
-    		// si la lectura dio falla, osea ReadMem retorno falso,
-    		// hay que reintentar(?)
-    		// El PC donde queda despues de la interrupción.
+    		pageFaultExceptionHandler();
     		break;
     	default:
     	// TODO Manejar el resto de las excepciones.
@@ -89,7 +75,6 @@ ExceptionHandler(ExceptionType which)
     	printException(which);
     	ASSERT(false);
     }
-
 }
 
 void syscallExceptionHandler() {
@@ -173,6 +158,28 @@ void syscallExceptionHandler() {
 			ASSERT(false);
 	}
 	delete [] chars;
+}
+
+void pageFaultExceptionHandler() {
+
+	printf("PageFault Trap. Dirección virtual\n");
+
+	int vAddrs; // Dirección virtual que debemos traducir.
+	int vPage; // Nº de página en la que se encuentra la dirección virtual que causo la falla.
+	TranslationEntry *entry; // La entrada que vamos a escribir en la tlb.
+	TranslationEntry *oldEntry; // La entrada que vamos sacar de la tlb.
+	srand(time(NULL));
+
+	// Sacamos de la tlb una entrada de manera aleatoria.
+	int oldEntryIndex = (rand() % TLBSize);
+	oldEntry = tlb[oldEntryIndex];
+	currentThread->space->UpdateEntryAt(oldEntry->virtualPage, oldEntry);
+
+	// Ponemos en la posición que sacamos anteriormente la nueva entrada.
+	vAddrs = machine->ReadRegister(BadVAddrReg);
+	vPage = divRoundDown(vAddrs, PageSize);
+	entry = currentThread->space->EntryAt(vPage);
+	machine->tlb[oldEntryIndex] = entry;
 }
 
 void readStringFromMem(char *str, int reg) {
