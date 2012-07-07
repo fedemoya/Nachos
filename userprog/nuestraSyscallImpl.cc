@@ -58,15 +58,17 @@ void NuestroFilesys::nuestraCreate(char *name) {
 
 
 OpenFileId NuestroFilesys::nuestraOpen(char *name) {
-	int ultimoId = 3;
+	int ultimoId=0;// = 3;
 	openFiles->StartIteration();
 	while(openFiles->HasNextIteration()){
 		OpenFileData* openFileData = openFiles->Next();
+        //~ DEBUG('w', "openfile ID %d\n",openFileData->id);
 		if(strcmp(name, openFileData->name) == 0){
 			return openFileData->id;
 		}
 		ultimoId = openFileData->id;
 	}
+
 	OpenFile *openFile = fileSystem->Open(name);
 	OpenFileData *openFileData = new OpenFileData;
 	openFileData->name = new char[100];
@@ -74,6 +76,15 @@ OpenFileId NuestroFilesys::nuestraOpen(char *name) {
 	openFileData->id = ++ultimoId;
 	openFileData->openFile = openFile;
 	openFiles->Append(openFileData);
+    //~ DEBUG('w', "openfile ID %d\n",openFileData->id);
+
+	openFiles->StartIteration();
+	while(openFiles->HasNextIteration()){
+		OpenFileData* openFileData = openFiles->Next();
+        DEBUG('w', "openfile abiertos ID %d\n",openFileData->id);
+        DEBUG('w', "openfile abiertos name %s\n",openFileData->name);
+	}
+
 	return openFileData->id;
 }
 
