@@ -25,12 +25,16 @@
 #include "system.h"
 #include "syscall.h"
 #include "nuestraSyscallImpl.h"
+#include <time.h>
+#include <limits.h>
 
 void syscallExceptionHandler();
 void pageFaultExceptionHandler();
 void readStringFromMem(char *buf, int reg);
 void readCharsFromMem(char *buf, int size, int reg);
 bool writeCharsToMem(char *str, int size, int addr);
+bool nuestraReadMem (int addr, int size, int *value);
+bool nuestraWriteMem (int addr, int size, int value);
 void incrementarPC();
 
 void printException(int);
@@ -160,34 +164,50 @@ void syscallExceptionHandler() {
 	delete [] chars;
 }
 
-void pageFaultExceptionHandler() {
 
-	printf("PageFault Trap. Dirección virtual\n");
+long seed = 1;
+
+void pageFaultExceptionHandler() {
 
 	int vAddrs; // Dirección virtual que debemos traducir.
 	int vPage; // Nº de página en la que se encuentra la dirección virtual que causo la falla.
 	TranslationEntry *entry; // La entrada que vamos a escribir en la tlb.
 	TranslationEntry *oldEntry; // La entrada que vamos sacar de la tlb.
-	srand(time(NULL));
+
+	srand(seed++);
+	if (seed == LONG_MAX - 1) {
+		seed = 0;
+	}
 
 	// Sacamos de la tlb una entrada de manera aleatoria.
 	int oldEntryIndex = (rand() % TLBSize);
-	oldEntry = tlb[oldEntryIndex];
-	currentThread->space->UpdateEntryAt(oldEntry->virtualPage, oldEntry);
+	oldEntry = &machine->tlb[oldEntryIndex];
+	if (oldEntry->valid) {
+		currentThread->space->UpdateEntryAt(oldEntry->virtualPage, oldEntry);
+	}
+
 
 	// Ponemos en la posición que sacamos anteriormente la nueva entrada.
 	vAddrs = machine->ReadRegister(BadVAddrReg);
+
+	DEBUG('z',"PageFault Trap. Dirección virtual %d. TLB Index %d.\n", vAddrs, oldEntryIndex);
+
 	vPage = divRoundDown(vAddrs, PageSize);
 	entry = currentThread->space->EntryAt(vPage);
-	machine->tlb[oldEntryIndex] = entry;
+	machine->tlb[oldEntryIndex].virtualPage = entry->virtualPage;
+	machine->tlb[oldEntryIndex].physicalPage = entry->physicalPage;
+	machine->tlb[oldEntryIndex].dirty = entry->dirty;
+	machine->tlb[oldEntryIndex].readOnly = entry->readOnly;
+	machine->tlb[oldEntryIndex].valid = entry->valid;
+	machine->tlb[oldEntryIndex].use = entry->use;
 }
 
 void readStringFromMem(char *str, int reg) {
 	int cont = 0;
 	int buf;
 	while(true){
-		if(!machine->ReadMem(machine->ReadRegister(reg) + cont,1, &buf)){
-			printf("Error machine->ReadMem");
+		if(!nuestraReadMem(machine->ReadRegister(reg) + cont,1, &buf)){
+			printf("Error nuestraReadMem\n");
 			ASSERT(false);
 		}
 		str[cont] = (char) buf;
@@ -201,7 +221,7 @@ void readCharsFromMem(char *chars, int size, int reg) {
 	int cont = 0;
 	int buf;
 	while(cont < size){
-		machine->ReadMem(machine->ReadRegister(reg) + cont,1, &buf);
+		nuestraReadMem(machine->ReadRegister(reg) + cont,1, &buf);
 		chars[cont] = (char) buf;
 		cont++;
 	}
@@ -210,7 +230,7 @@ void readCharsFromMem(char *chars, int size, int reg) {
 bool writeCharsToMem(char *str, int size, int addr) {
 	int count = 0;
 	while(count < size) {
-		if(!machine->WriteMem(addr + count, 1, (int)str[count])) // Hay que ver que onda acá!!!
+		if(!nuestraWriteMem(addr + count, 1, (int)str[count]))
 			return false;
 		count++;
 	}
@@ -219,6 +239,24 @@ bool writeCharsToMem(char *str, int size, int addr) {
 
 void incrementarPC() {
     machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
+}
+
+bool nuestraReadMem (int addr, int size, int *value) {
+	if (!machine->ReadMem(addr, size, value)) {
+		// Fallo la lectura de la tlb pero el sistema operativo se encargo del problema y escribió la dirección que faltaba.
+		// Reintentamos, no debería fallar.
+		return machine->ReadMem(addr, size, value);
+	}
+	return true;
+}
+
+bool nuestraWriteMem (int addr, int size, int value) {
+	if (!machine->WriteMem(addr, size, value)) {
+		// Fallo la lectura de la tlb pero el sistema operativo se encargo del problema y escribió la dirección que faltaba.
+		// Reintentamos, no debería fallar.
+		return machine->WriteMem(addr, size, value);
+	}
+	return true;
 }
 
 void printException(int which) {

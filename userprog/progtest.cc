@@ -35,8 +35,12 @@ StartProcess(const char *filename)
 
     delete executable;			// close file
 
+
     space->InitRegisters();		// set the initial register values
+
+#ifndef USE_TLB
     space->RestoreState();		// load page table register
+#endif
 
     machine->Run();			// jump to the user progam
     ASSERT(false);			// machine->Run never returns;

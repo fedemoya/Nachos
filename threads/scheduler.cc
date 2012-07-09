@@ -142,14 +142,16 @@ Scheduler::Run (Thread *nextThread)
     
     DEBUG('t', "Switching from thread \"%s\" to thread \"%s\"\n",
 	  oldThread->getName(), nextThread->getName());
-    
+
+#ifdef USER_PROGRAM
     // Antes de un cambio de contexto reseteamos la tlb.
-    if (machine->tlb != null) {
+    if (machine->tlb != NULL) {
     	int i;
     	for (i = 0; i<TLBSize; i++) {
-    		machine->tlb[i]->valid = false;
+    		machine->tlb[i].valid = false;
     	}
     }
+#endif
 
     // This is a machine-dependent assembly language routine defined 
     // in switch.s.  You may have to think
@@ -172,7 +174,9 @@ Scheduler::Run (Thread *nextThread)
 #ifdef USER_PROGRAM
     if (currentThread->space != NULL) {		// if there is an address space
         currentThread->RestoreUserState();     // to restore, do it.
-	currentThread->space->RestoreState();
+#ifndef USE_TLB
+    currentThread->space->RestoreState();		// load page table register
+#endif
     }
 #endif
 }

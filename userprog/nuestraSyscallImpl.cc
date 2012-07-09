@@ -192,7 +192,10 @@ void runInChildThread(void* space) {
     currentThread->space = (AddrSpace *) space;
 
     currentThread->space->InitRegisters();		// set the initial register values
+
+#ifndef USE_TLB
     currentThread->space->RestoreState();		// load page table register
+#endif
 
     machine->Run();			// jump to the user progam
     printf("La funcion startProcess llego al assert\n");

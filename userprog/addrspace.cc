@@ -227,18 +227,24 @@ void AddrSpace::RestoreState()
 
 TranslationEntry *AddrSpace::EntryAt(int page)
 {
-	if (page < pageSize) {
-		printf("El número de página es mayor al tamaño de la tabla de paginas.");
+	if (page > numPages) {
+		printf("El número de página es mayor al tamaño de la tabla de paginas.\n");
 		ASSERT(false);
 	}
-	return pageTable[page];
+	return &pageTable[page];
 }
 
 void AddrSpace::UpdateEntryAt(int page, TranslationEntry *entry)
 {
-	if (page < pageSize) {
-		printf("El número de página es mayor al tamaño de la tabla de paginas.");
+	if (page > numPages) {
+		printf("El número de página es mayor al tamaño de la tabla de paginas.\n");
 		ASSERT(false);
 	}
-	pageTable[page] = entry;
+
+	pageTable[page].virtualPage = entry->virtualPage;
+	pageTable[page].physicalPage = entry->physicalPage;
+	pageTable[page].dirty = entry->dirty;
+	pageTable[page].readOnly = entry->readOnly;
+	pageTable[page].valid = entry->valid;
+	pageTable[page].use = entry->use;
 }
