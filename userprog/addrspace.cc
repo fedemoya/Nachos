@@ -221,8 +221,10 @@ void AddrSpace::SaveState()
 
 void AddrSpace::RestoreState() 
 {
+    #ifndef USE_TLB
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+    #endif
 }
 
 TranslationEntry *AddrSpace::EntryAt(int page)
