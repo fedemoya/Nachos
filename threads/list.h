@@ -98,13 +98,7 @@ List<Item>::List()
 template <class Item>
 void List<Item>::StartIteration() {
 	currentElement = first;
-    //~ if (currentElement) {
-        //~ nextElement = currentElement->next;
-    //~ }
-    //~ else {
-        nextElement = first;
-    //~ }
-
+	nextElement = first;
 }
 
 template <class Item>

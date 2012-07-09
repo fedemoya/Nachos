@@ -11,7 +11,7 @@ int main()
 	SpaceId id;
 	id = pruebaExec();
 	pruebaExec2();
-//~ //	pruebaJoin(id);
+//	pruebaJoin(id);
 //	prueba2();
     Exit(1);
 }
