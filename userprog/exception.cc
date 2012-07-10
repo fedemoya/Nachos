@@ -72,6 +72,10 @@ ExceptionHandler(ExceptionType which)
     	case PageFaultException:
     		pageFaultExceptionHandler();
     		break;
+    	case ReadOnlyException:
+    		printf("Caimos en una ReadOnlyException!!!\n");
+    		// TODO
+    		break;
     	default:
     	// TODO Manejar el resto de las excepciones.
     	// Al menos las que puedan ser disparadas por el método Translate.

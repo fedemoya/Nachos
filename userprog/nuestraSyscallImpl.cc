@@ -204,6 +204,8 @@ void runInChildThread(void* space) {
 
 void nuestraExit(int status) {
 
+	DEBUG('z', "\nExit status: %d\n", status);
+
 	if(spaceList != NULL) {
 		spaceList->StartIteration();
 		while(spaceList->HasNextIteration()){
