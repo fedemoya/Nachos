@@ -147,9 +147,13 @@ void syscallExceptionHandler() {
 			break;
 		case SC_Exit:
 			/* para depuración */ printf("Se ejecuto EXIT\n");
+            #ifdef USE_TLB
+                stats->Print();
+            #endif 
 			status = machine->ReadRegister(4);
 			nuestraExit(status);
 			incrementarPC();
+            
 			break;
 		case SC_Join:
 			/* para depuración */ printf("Se ejecuto JOIN\n");
@@ -200,6 +204,8 @@ void pageFaultExceptionHandler() {
 	machine->tlb[oldEntryIndex].readOnly = entry->readOnly;
 	machine->tlb[oldEntryIndex].valid = entry->valid;
 	machine->tlb[oldEntryIndex].use = entry->use;
+
+    stats->numErrorTLB++;
 }
 
 void readStringFromMem(char *str, int reg) {

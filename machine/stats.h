@@ -39,6 +39,8 @@ class Statistics {
     Statistics(); 		// initialize everything to zero
 
     void Print();		// print collected statistics
+    int numHitTLB;
+    int numErrorTLB;
 };
 
 // Constants used to reflect the relative time an operation would
