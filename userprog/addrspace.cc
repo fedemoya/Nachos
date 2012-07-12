@@ -20,6 +20,8 @@
 #include "addrspace.h"
 #include "noff.h"
 
+#define PILA_OFFSET 16 //convencion MIPS
+
 //----------------------------------------------------------------------
 // SwapHeader
 // 	Do little endian to big endian conversion on the bytes in the 
@@ -152,38 +154,78 @@ AddrSpace::AddrSpace(OpenFile *executable)
 		}
 //--} smb 26/04/2012	        			                    
     }
+    
+    
+    aumentoStackArgsExec = 0;
 }
 
-
 bool AddrSpace::ApilarArgumentos(int argc,char**argv) {
+	
+	machine->pageTable = pageTable; //seteo posiblemente temporal, esta bien? (es para renegar menos traduciendo luego)
+	
 	int tamanioTotalArgs=0;
 	for(int i= 0;i<argc;i++) {
+		DEBUG('w', "ApilarArgumentos, arg nro %d es %s \n", i,argv[i]);
 		tamanioTotalArgs+= strlen(argv[i]) + 1;
 	}
 	
-	aumentoStackArgsExec = tamanioTotalArgs;
+	//aumentoStackArgsExec = tamanioTotalArgs +  argc + 1;//hago lugar para los arrays *argv y para argv
 
 	DEBUG('a', "Extra size argumentos Exec igual a %d bytes, para %d cant de argumentos \n", tamanioTotalArgs,argc);
-	
-	if (!AumentarEspacio(tamanioTotalArgs))
-		return false;
+	//~ 
+	//~ if (!AumentarEspacio(tamanioTotalArgs))
+		//~ return false;
 	
 	mainArgc = argc;
-	mainVirtDirArgv =  numPages * PageSize - aumentoStackArgsExec - 16;
+	
+	int aumStackAlineado = tamanioTotalArgs + (4- tamanioTotalArgs%4);
+	
+	int inicioArgumentos = numPages * PageSize - aumStackAlineado -PILA_OFFSET;
+	
 	int contOffSet = 0;
 	int indStr = 0;
+	//copiamos los arrays
 	for (int nroArg = 0; nroArg < argc; nroArg++) {
-			 indStr = 0;		 
-			  do {
-				int virtAddr = mainVirtDirArgv + contOffSet;
-				machine->mainMemory[ traducirVirDir2PhisDir(virtAddr)] = argv[nroArg][indStr];
-				contOffSet++;	
-				indStr++;
-			 } while (argv[nroArg][indStr] !='\0');
-			 
+		 indStr = 0;
+		 int virtAddr;		 
+		  do {
+			virtAddr = inicioArgumentos + contOffSet;
+			//~ machine->mainMemory[ traducirVirDir2PhisDir(virtAddr)] = argv[nroArg][indStr];
+			if (!machine->WriteMem(virtAddr, 1, argv[nroArg][indStr]))
+				return false;
+			contOffSet++;	
+			indStr++;
+		 } while (argv[nroArg][indStr] !='\0');
+		 contOffSet++;
+		 virtAddr = inicioArgumentos + contOffSet;
+		 if (!machine->WriteMem(virtAddr, 1, argv[nroArg][indStr]))
+				return false;//copiamos el '\0'
+
+		 //~ contOffSet+= virtAddr%4;
+		 DEBUG('w',"ApilarArgumentos %s \n",argv[nroArg]);
 	}
-	DEBUG('a', "Expandemos el address space, num pages %d\n", 
-					numPages);
+	
+	
+	//copiamos el array de arrays
+	mainVirtDirArgv =  numPages * PageSize - aumStackAlineado - 4*(argc+1)- PILA_OFFSET;//puede que deje un par de chars al pedo...
+	int dirVirtEnPilaArgvTmp = 0;
+	int	virtAddrTmp;
+	int nroArg;
+	for (nroArg = 0; nroArg < argc; nroArg++)  {
+		virtAddrTmp = mainVirtDirArgv + nroArg*4;
+		if (!machine->WriteMem(virtAddrTmp, 4, inicioArgumentos + dirVirtEnPilaArgvTmp))
+			return false;    				
+		dirVirtEnPilaArgvTmp+= strlen(argv[nroArg]) + 1;
+		//~ machine->mainMemory[ traducirVirDir2PhisDir(virtAddr)] = argv[nroArg][indStr];
+	}
+	virtAddrTmp = mainVirtDirArgv + nroArg*4;
+	if (!machine->WriteMem(virtAddrTmp, 4, (int)'\0'))
+			return false;   
+			
+	aumentoStackArgsExec = inicioArgumentos - 4*(argc+1);	
+	//~ aumentoStackArgsExec -=  aumentoStackArgsExec%4;
+	aumentoStackArgsExec = numPages * PageSize - aumentoStackArgsExec;
+	DEBUG('w', "StackPointerApuntando a %d\n", aumentoStackArgsExec);
 	return true;
 }
 
@@ -295,9 +337,11 @@ AddrSpace::InitRegisters()
    // allocated the stack; but subtract off a bit, to make sure we don't
    // accidentally reference off the end!
     //~ machine->WriteRegister(StackReg, numPages * PageSize - 16);
-    int restaStack = divRoundUp(aumentoStackArgsExec,4);
-    machine->WriteRegister(StackReg, numPages * PageSize - restaStack*4 -16);
-    DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - restaStack*4  - 16);
+    //~ int restaStack = divRoundUp(aumentoStackArgsExec,4);
+    //~ machine->WriteRegister(StackReg, numPages * PageSize - restaStack*4 -PILA_OFFSET);
+    
+    machine->WriteRegister(StackReg, numPages * PageSize - aumentoStackArgsExec -PILA_OFFSET);
+    DEBUG('a', "Initializing stack register to %d\n",numPages * PageSize - aumentoStackArgsExec -PILA_OFFSET);
 }
 
 //----------------------------------------------------------------------

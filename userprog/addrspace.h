@@ -34,6 +34,7 @@ class AddrSpace {
     bool ApilarArgumentos(int argc,char**argv);
     int ObtenerArgc();
     int ObtenerVirtDirArgv();
+    int ObtenerPageTableSize() { return numPages;}
 
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation

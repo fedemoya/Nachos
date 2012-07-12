@@ -2,15 +2,40 @@
 
 int main(int argc,char**argv)
 {
-	int i;
+	int i,j;
 	//~ char algoParaEscribir[100];
 	//~ algoParaEscribir[0] = 'X';
 	//~ algoParaEscribir[1] = 'Y';
 	//~ algoParaEscribir[2] = 'Z';
 	//~ Write(algoParaEscribir, 3, ConsoleOutput);
+	char algoParaEscribir[100];
+	//~ algoParaEscribir[0] =  (char)('9' - '0' + (char)(argc & 0xFF)); 
+	//~ algoParaEscribir[1] = '\n';
+	//~ algoParaEscribir[2] =  '9' - (char)(argc & 0xff) + '0';
+	//~ algoParaEscribir[3] =  '9' - (char)(argc>>8 & 0xff) + '0';
+	//~ algoParaEscribir[4] =  '9' - (char)(argc>>16 & 0xff) + '0';
+	//~ algoParaEscribir[5] =  '9' - (char)(argc>>24 & 0xff) + '0';
+	//~ algoParaEscribir[6] = '\n';
+	//~ Write(algoParaEscribir, 7, ConsoleOutput);
 	
-	for(i=0;i<argc;i++)
-		Write(argv[i], 4, ConsoleOutput);
+	//~ Write((char)argc, 1, ConsoleOutput);
+	//~ Write((char)argv, 1, ConsoleOutput);
+	
+	
+	//~ for(i=0;i<argc;i++){
+		//~ Write(argv[i], 4, ConsoleOutput);
+	//~ }
+	for(i=0;i<argc;i++){
+		int j = 0;
+		while (argv[i][j] !='\0'){
+			algoParaEscribir[j] = argv[i][j];
+			j++;
+		}
+		algoParaEscribir[j] = '\n';
+		Write(algoParaEscribir, ++j, ConsoleOutput);
+	}
+		
+		
 		//~ 
 	//~ char algoParaEscribir[100];
 	//~ char buffer[100];

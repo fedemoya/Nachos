@@ -7,6 +7,13 @@
 #include "system.h"
 #include "nuestraSyscallImpl.h"
 
+
+#define MAX_SIZE_ARGV 100 //convencion MIPS
+
+
+int argcNSI;
+char** argvNSI;
+
 static Semaphore *readAvail;
 static Semaphore *writeDone;
 
@@ -187,12 +194,16 @@ SpaceId nuestraExec(char *filename) {
 
 void runInChildThreadWithArgs(void*);
 
-SpaceId nuestraExecWithArgs(char *filename,int argc,char**argv) {
+SpaceId nuestraExecWithArgs(char *filename,int argcA,char**argvA) {
 
 	static Thread* newThread;
 	static AddrSpace* space;
 	SpaceData* spaceData;
 
+	for(int i= 0;i<argcA;i++) {
+		DEBUG('w', "argvA en nuestraExecWithArgs, arg nro %d es %s \n", i,argvA[i]);
+	}
+	
 	OpenFile *executable = fileSystem->Open(filename);
 
 	if (executable == NULL) {
@@ -202,16 +213,16 @@ SpaceId nuestraExecWithArgs(char *filename,int argc,char**argv) {
 
 	space = new AddrSpace(executable);
 	
-	if(argc < 0) {
-		printf("Argc debe ser un numero no negativo\n");
+	if(argcA < 0) {
+		printf("argcA debe ser un numero no negativo\n");
 		return -1;
 	} 
 	
-	if(!space->ApilarArgumentos(argc,argv)) {
-		printf("Error al copiar argumentos al stack\n");
-		return -1;
-	}
-	
+	//~ if(!space->ApilarArgumentos(argcA,argvA)) {
+		//~ printf("Error al copiar argumentos al stack\n");
+		//~ return -1;
+	//~ }
+	//~ 
 	
 	delete executable;			// close file
 
@@ -226,7 +237,18 @@ SpaceId nuestraExecWithArgs(char *filename,int argc,char**argv) {
     spaceData->key = newThread->getId();
     spaceData->thread = newThread;
 	spaceList->Append(spaceData);
-
+	
+	//copiamos argumentos en variables globales
+	argcNSI = argcA;
+	argvNSI = new char*[argcA + 1];
+	for (int i = 0; i < argcA; i++)
+		argvNSI[i] = new char[MAX_SIZE_ARGV];
+	for (int i = 0; i < argcA; i++)
+		strcpy(argvNSI[i],argvA[i]);
+	
+	for(int i= 0;i<argcNSI;i++) {
+		DEBUG('w', "argvNSI en nuestraExecWithArgs, arg nro %d es %s \n", i,argvNSI[i]);
+	}
 	newThread->Fork(runInChildThreadWithArgs, (void *)space);
 	//~ newThread->Fork(runInChildThread, (void *)space);
 
@@ -240,6 +262,10 @@ void runInChildThreadWithArgs(void* space) {
 	printf("Aca deberia aparecer el nombre del arhivo a ejecutar: %s\n",currentThread->getName());
 
     currentThread->space = (AddrSpace *) space;
+	machine->pageTableSize = currentThread->space->ObtenerPageTableSize();
+	
+	currentThread->space->ApilarArgumentos(argcNSI,argvNSI);
+	delete [] argvNSI;
 
     currentThread->space->InitRegisters();		// set the initial register values
     currentThread->space->RestoreState();		// load page table register

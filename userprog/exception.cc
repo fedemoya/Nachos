@@ -130,7 +130,7 @@ void syscallExceptionHandler() {
 			incrementarPC();
 			break;
 		case SC_Read :
-			/* para depuración */ printf("Se ejecuto READ\n");
+			/* para depuración */ //printf("Se ejecuto READ\n");
 			bufferAddr = machine->ReadRegister(4);
 			size = machine->ReadRegister(5);
 			openFileId = machine->ReadRegister(6);
@@ -141,7 +141,7 @@ void syscallExceptionHandler() {
 			incrementarPC();
 			break;
 		case SC_Write :
-			/* para depuración */ printf("Se ejecuto WRITE\n");
+			/* para depuración */ //printf("Se ejecuto WRITE\n");
 			size = machine->ReadRegister(5);
 			if (!readCharsFromMem(chars, size, 4)) { // TODO size no puede ser > 100
 				printf("ERROR al intentar leer argumentos de Write.\n");
@@ -153,7 +153,7 @@ void syscallExceptionHandler() {
 			incrementarPC();
 			break;
 		case SC_Close :
-			/* para depuración */ printf("Se ejecuto CLOSE\n");
+			/* para depuración */ //printf("Se ejecuto CLOSE\n");
 			openFileId = machine->ReadRegister(4);
 			nuestroFilesys->nuestraClose(openFileId);
 			incrementarPC();
@@ -214,8 +214,11 @@ bool readStringFromDirMem(char *str, int dir)  {
 		if (!machine->ReadMem(dir + cont,1, &buf)) 
 			return false;
 		str[cont] = (char) buf;
-		if (str[cont] == '\0')
+		if (str[cont] == '\0'){
+			DEBUG('w', "readStringFromDirMem Leyo %c en la pos %d \n",str[cont], cont);
 		  break;
+		}
+		DEBUG('w', "readStringFromDirMem Leyo %c en la pos %d \n",str[cont], cont);
 		cont++;
 	}
 	return true;
@@ -251,13 +254,26 @@ bool readArgsFromMem(int dir, char ***pargv, int numArgs)  {
 	int cont = 0;
 	int strLenCont = 0;
 	while(cont < numArgs) {
-		if (!readStringFromDirMem( (*pargv)[cont] ,dir + strLenCont))
+		int dirVirt;	
+		if (!readStringFromDirMem( (*pargv)[cont] ,dir +strLenCont))
 			return false;
 		strLenCont+= strlen((*pargv)[cont])+1;
-		printf("%s \n",(*pargv)[cont]);
+		DEBUG('w', "readArgsFromMem %s \n",(*pargv)[cont]);
 		cont++;
 	}		
 	return true;
+	
+//No entiendo por que NO anda de esta forma!!
+	//~ while(cont < numArgs) {
+		//~ int dirVirt;
+		//~ if (!machine->ReadMem(dir+4*cont,4,&dirVirt))
+			//~ return false;
+		//~ if (!readStringFromDirMem( (*pargv)[cont] ,dirVirt))
+			//~ return false;						
+		//~ DEBUG('w', "readArgsFromMem %s \n",(*pargv)[cont]);
+		//~ cont++;
+	//~ }		
+	//~ return true;
 } 
 
 void printException(int which) {
