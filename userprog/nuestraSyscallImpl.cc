@@ -164,7 +164,7 @@ SpaceId nuestraExec(char *filename) {
 	}
 
 	space = new AddrSpace(executable);
-	delete executable;			// close file
+//	delete executable;			// close file
 
 	if (spaceList == NULL) {
     	spaceList = new List<SpaceData*>;

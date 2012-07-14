@@ -15,6 +15,7 @@
 
 #include "copyright.h"
 #include "filesys.h"
+#include "noff.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
 
@@ -39,6 +40,9 @@ class AddrSpace {
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
+    //necesario para el ejercicio 3 de la practica 5
+    OpenFile *executable;
+    NoffHeader noffH;
 };
 
 #endif // ADDRSPACE_H
