@@ -151,9 +151,6 @@ void syscallExceptionHandler() {
 			break;
 		case SC_Exit:
 			/* para depuración */ printf("Se ejecuto EXIT\n");
-            #ifdef USE_TLB
-                stats->Print();
-            #endif 
 			status = machine->ReadRegister(4);
 			nuestraExit(status);
 			incrementarPC();

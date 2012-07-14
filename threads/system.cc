@@ -204,7 +204,9 @@ Initialize(int argc, char **argv)
 void
 Cleanup()
 {
-
+    #ifdef USE_TLB
+        stats->Print();
+    #endif 
     printf("\nCleaning up...\n");
 
 // 2007, Jose Miguel Santos Espino
