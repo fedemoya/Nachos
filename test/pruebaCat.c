@@ -1,6 +1,6 @@
 #include "syscall.h"
 
-#define EOF 0
+#define NULL 0
 
 void cat(OpenFileId id);
 
@@ -14,7 +14,7 @@ int main() {
 void cat(OpenFileId id) {
 	char *c;
 	Read(c, 1, id);
-	while (*c != EOF) {
+	while (*c != NULL) {
 		Write(c, 1, ConsoleOutput);
 		Read(c, 1, id);
 	}
