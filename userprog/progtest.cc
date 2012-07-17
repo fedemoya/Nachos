@@ -33,8 +33,9 @@ StartProcess(const char *filename)
     space = new AddrSpace(executable);    
     currentThread->space = space;
 
+#ifndef USE_TLB
     delete executable;			// close file
-
+#endif
 
     space->InitRegisters();		// set the initial register values
 

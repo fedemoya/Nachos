@@ -194,6 +194,7 @@ void pageFaultExceptionHandler() {
 
 	// Ponemos en la posición que sacamos anteriormente la nueva entrada.
 	vAddrs = machine->ReadRegister(BadVAddrReg);
+	ASSERT(vAddrs >= 0);
 
 	DEBUG('z',"PageFault Trap. Dirección virtual %d. TLB Index %d.\n", vAddrs, oldEntryIndex);
 

@@ -61,12 +61,23 @@ AddrSpace::AddrSpace(OpenFile *exec)
 {
 	executable = exec;
 	executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
-	unsigned int i;
+	unsigned int i, size;
 
 	if ((noffH.noffMagic != NOFFMAGIC) &&
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
 		SwapHeader(&noffH);
 	ASSERT(noffH.noffMagic == NOFFMAGIC);
+
+	// how big is address space?
+	size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
+			+ UserStackSize;	// we need to increase the size
+						// to leave room for the stack
+	numPages = divRoundUp(size, PageSize);
+
+	ASSERT(numPages <= NumPhysPages);		// check we're not trying
+						// to run anything too big --
+						// at least until we have
+						// virtual memory
 
 	pageTable = new TranslationEntry[NumPhysPages];
 
@@ -182,7 +193,7 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 				 int virtAddr = noffH.code.virtualAddr+i;
 				 unsigned int vpn = (unsigned) virtAddr / PageSize;
 				 unsigned int offset = (unsigned) virtAddr % PageSize;
-				 if (vpn == (unsigned) page) {
+				 if (vpn == page) {
 					int pageFrame = pageTable[vpn].physicalPage;
 					int physAddr = pageFrame * PageSize + offset;
 					executable->ReadAt(&(machine->mainMemory[physAddr]),1,noffH.code.inFileAddr+i);
