@@ -36,7 +36,7 @@ CFLAGS = -G 0 -c $(INCDIR) -mips1
 
 #all: pruebaExec2ndTry programa
 
-all: halt pruebasSyscall masPruebasSyscall pruebaExec shell matmult sort
+all: halt pruebasSyscall masPruebasSyscall pruebaExec shell matmult sort pruebaCat
 
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.s > strt.s
@@ -84,6 +84,12 @@ pruebaExec.o: pruebaExec.c
 pruebaExec: pruebaExec.o start.o
 	$(LD) $(LDFLAGS) start.o pruebaExec.o -o pruebaExec.coff
 	../bin/coff2noff pruebaExec.coff pruebaExec
+	
+pruebaCat.o: pruebaCat.c
+	$(CC) $(CFLAGS) -c pruebaCat.c
+pruebaCat: pruebaCat.o start.o
+	$(LD) $(LDFLAGS) start.o pruebaCat.o -o pruebaCat.coff
+	../bin/coff2noff pruebaCat.coff pruebaCat
 
 #pruebaExec2ndTry.o: pruebaExec2ndTry.c
 #	$(CC) $(CFLAGS) -c pruebaExec2ndTry.c

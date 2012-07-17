@@ -90,9 +90,7 @@ void syscallExceptionHandler() {
 	int type = machine->ReadRegister(2);
 
 	char *chars = new char[100];
-	int bufferAddr;
-	int openFileId, size, status;
-	int spaceId;
+	int bufferAddr, openFileId, size, status, spaceId, readResult;
 
 	static NuestroFilesys *nuestroFilesys = NULL;
 	if(nuestroFilesys == NULL) {
@@ -105,31 +103,32 @@ void syscallExceptionHandler() {
 			interrupt->Halt();
 			break;
 		case SC_Create :
-			/* para depuración */ printf("Se ejecuto CREATE\n");
+			DEBUG('s',"Se ejecuto CREATE\n");
 			readStringFromMem(chars, 4);
 			nuestroFilesys->nuestraCreate(chars);
 			incrementarPC();
 			break;
 		case SC_Open :
-			/* para depuración */ printf("Se ejecuto OPEN\n");
+			DEBUG('s',"Se ejecuto OPEN\n");
 			readStringFromMem(chars, 4);
 			openFileId = nuestroFilesys->nuestraOpen(chars);
 			machine->WriteRegister(2, openFileId);
 			incrementarPC();
 			break;
 		case SC_Read :
-			/* para depuración */ printf("Se ejecuto READ\n");
+			DEBUG('s',"Se ejecuto READ\n");
 			bufferAddr = machine->ReadRegister(4);
 			size = machine->ReadRegister(5);
 			openFileId = machine->ReadRegister(6);
-			nuestroFilesys->nuestraRead(chars, size, openFileId); // TODO size no puede ser > 100
+			readResult = nuestroFilesys->nuestraRead(chars, size, openFileId); // TODO size no puede ser > 100
 			if(!writeCharsToMem(chars, size, bufferAddr)){
 				printf("ERROR al intentar escribir en memoria.\n");
 			}
+			machine->WriteRegister(2, readResult);
 			incrementarPC();
 			break;
 		case SC_Write :
-			/* para depuración */ printf("Se ejecuto WRITE\n");
+			DEBUG('s',"Se ejecuto WRITE\n");
 			size = machine->ReadRegister(5);
 			readCharsFromMem(chars, size, 4); // TODO size no puede ser > 100
 			openFileId = machine->ReadRegister(6);
@@ -137,27 +136,27 @@ void syscallExceptionHandler() {
 			incrementarPC();
 			break;
 		case SC_Close :
-			/* para depuración */ printf("Se ejecuto CLOSE\n");
+			DEBUG('s',"Se ejecuto CLOSE\n");
 			openFileId = machine->ReadRegister(4);
 			nuestroFilesys->nuestraClose(openFileId);
 			incrementarPC();
 			break;
 		case SC_Exec :
-			/* para depuración */ printf("Se ejecuto EXEC\n");
+			DEBUG('s',"Se ejecuto EXEC\n");
 			readStringFromMem(chars, 4);
 			spaceId = nuestraExec(chars);
 			machine->WriteRegister(2, spaceId);
 			incrementarPC();
 			break;
 		case SC_Exit:
-			/* para depuración */ printf("Se ejecuto EXIT\n");
+			DEBUG('s',"Se ejecuto EXIT\n");
 			status = machine->ReadRegister(4);
 			nuestraExit(status);
 			incrementarPC();
             
 			break;
 		case SC_Join:
-			/* para depuración */ printf("Se ejecuto JOIN\n");
+			DEBUG('s',"Se ejecuto JOIN\n");
 			spaceId = machine->ReadRegister(4);
 			status = nuestraJoin(spaceId);
 			machine->WriteRegister(2,status);
