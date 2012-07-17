@@ -57,6 +57,7 @@ SwapHeader (NoffHeader *noffH)
 //	"executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
 
+#ifdef USE_TLB
 AddrSpace::AddrSpace(OpenFile *exec)
 {
 	executable = exec;
@@ -90,7 +91,102 @@ AddrSpace::AddrSpace(OpenFile *exec)
 		pageTable[i].readOnly     = false;
 	}
 }
+#else
+AddrSpace::AddrSpace(OpenFile *exec)
+{
+    NoffHeader noffH;
+    unsigned int i, size;
 
+    exec->ReadAt((char *)&noffH, sizeof(noffH), 0);
+    if ((noffH.noffMagic != NOFFMAGIC) &&
+		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
+    	SwapHeader(&noffH);
+    ASSERT(noffH.noffMagic == NOFFMAGIC);
+
+// how big is address space?
+    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
+			+ UserStackSize;	// we need to increase the size
+						// to leave room for the stack
+    numPages = divRoundUp(size, PageSize);
+    size = numPages * PageSize;
+
+	//--{ smb 26/04/2012
+	unsigned int NumPhysPagesLibres =  machine->bitMapPagMemAdmin->NumClear();
+//ya no son todas las paginas para un solo proceso
+// ASSERT(numPages <= NumPhysPages);		// check we're not trying
+						// to run anything too big --
+						// at least until we have
+						// virtual memory
+	DEBUG('a',"num pages %d, NumPhysPagesLibres %d\n",numPages,NumPhysPagesLibres);
+	ASSERT(numPages <= NumPhysPagesLibres);		// check we're not trying
+	//--} smb 26/04/2012
+    DEBUG('a', "Initializing address space, num pages %d, size %d\n",
+					numPages, size);
+// first, set up the translation
+    pageTable = new TranslationEntry[numPages];
+    for (i = 0; i < numPages; i++) {
+		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+		//--{ smb 26/04/2012
+		int numNextPagFisicaLibre = machine->bitMapPagMemAdmin->Find();
+		//pageTable[i].physicalPage = i;
+		pageTable[i].physicalPage = numNextPagFisicaLibre;
+		machine->bitMapPagMemAdmin->Mark(numNextPagFisicaLibre);
+		//--} smb 26/04/2012
+		pageTable[i].valid = true;
+		pageTable[i].use = false;
+		pageTable[i].dirty = false;
+		pageTable[i].readOnly = false;  // if the code segment was entirely on
+						// a separate page, we could set its
+						// pages to be read-only
+    }
+
+// zero out the entire address space, to zero the unitialized data segment
+// and the stack segment
+//--{ smb 26/04/2012
+    //bzero(machine->mainMemory, size);
+     for (i = 0; i < numPages; i++) {
+		 bzero(&(machine->mainMemory[pageTable[i].physicalPage * PageSize]), PageSize);
+	 }
+//--} smb 26/04/2012
+
+
+// then, copy in the code and data segments into memory
+    if (noffH.code.size > 0) {
+        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
+			noffH.code.virtualAddr, noffH.code.size);
+//--{ smb 26/04/2012
+		//~ exec->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
+			//~ noffH.code.size, noffH.code.inFileAddr);
+		for (i = 0; i < (int)noffH.code.size; i++) {
+			 int virtAddr = noffH.code.virtualAddr+i;
+			 unsigned int vpn = (unsigned) virtAddr / PageSize;
+			 unsigned int offset = (unsigned) virtAddr % PageSize;
+			 int pageFrame = pageTable[vpn].physicalPage;
+			 int physAddr = pageFrame * PageSize + offset;
+			 exec->ReadAt(&(machine->mainMemory[physAddr]),1,noffH.code.inFileAddr+i);
+			 //machine->WriteMem(noffH.code.virtualAddr + i, 1,c);//esta ya accede a Translate para traducir virtual a real
+		}
+//--} smb 26/04/2012
+    }
+    if (noffH.initData.size > 0) {
+        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
+			noffH.initData.virtualAddr, noffH.initData.size);
+//--{ smb 26/04/2012
+        //~ exec->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
+			//~ noffH.initData.size, noffH.initData.inFileAddr);
+		for (i = 0; i < (int)noffH.initData.size; i++) {
+			 int virtAddr = noffH.initData.virtualAddr+i;
+			 unsigned int vpn = (unsigned) virtAddr / PageSize;
+			 unsigned int offset = (unsigned) virtAddr % PageSize;
+			 int pageFrame = pageTable[vpn].physicalPage;
+			 int physAddr = pageFrame * PageSize + offset;
+			 exec->ReadAt(&(machine->mainMemory[physAddr]),1,noffH.initData.inFileAddr+i);
+			 //machine->WriteMem(noffH.initData.virtualAddr + i, 1,c);
+		}
+//--} smb 26/04/2012
+    }
+}
+#endif
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
 // 	Dealloate an address space.  Nothing for now!
