@@ -80,9 +80,9 @@ AddrSpace::AddrSpace(OpenFile *exec)
 						// at least until we have
 						// virtual memory
 
-	pageTable = new TranslationEntry[NumPhysPages];
+	pageTable = new TranslationEntry[numPages];
 
-	for (i = 0; i < NumPhysPages; i++) {
+	for (i = 0; i < numPages; i++) {
 		pageTable[i].virtualPage  = i;
 		pageTable[i].physicalPage = 0;
 		pageTable[i].valid        = false;
