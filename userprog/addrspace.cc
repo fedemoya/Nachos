@@ -58,7 +58,7 @@ SwapHeader (NoffHeader *noffH)
 //----------------------------------------------------------------------
 
 #ifdef USE_TLB
-AddrSpace::AddrSpace(OpenFile *exec)
+AddrSpace::AddrSpace(OpenFile *exec, int spaceId)
 {
 	executable = exec;
 	executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
@@ -84,15 +84,22 @@ AddrSpace::AddrSpace(OpenFile *exec)
 
 	for (i = 0; i < numPages; i++) {
 		pageTable[i].virtualPage  = i;
-		pageTable[i].physicalPage = 0;
+		pageTable[i].physicalPage = NULL_PAGE;
+		pageTable[i].swapPage = NULL_PAGE;
 		pageTable[i].valid        = false;
 		pageTable[i].use          = false;
 		pageTable[i].dirty        = false;
 		pageTable[i].readOnly     = false;
 	}
+
+
+	swapFileName = new char[10];
+	sprintf(swapFileName, "SWAP.%d", spaceId);
+	ASSERT(fileSystem->Create(swapFileName, 0));
+	swapPagesCounter = 0;
 }
 #else
-AddrSpace::AddrSpace(OpenFile *exec)
+AddrSpace::AddrSpace(OpenFile *exec, int spaceId)
 {
     NoffHeader noffH;
     unsigned int i, size;
@@ -201,6 +208,9 @@ AddrSpace::~AddrSpace()
    } 	
    //--} smb 26/04/2012
    delete pageTable;
+//   fileSystem->Remove(swapFileName); TODO descomentar (lo dejamos para debugear)
+   delete swapFile;
+   delete [] swapFileName;
 }
 
 //----------------------------------------------------------------------
@@ -265,18 +275,27 @@ void AddrSpace::RestoreState()
 TranslationEntry *AddrSpace::EntryAt(int page)
 {
 	unsigned int i;
+	int numNextPagFisicaLibre;
+
 	if (page > NumPhysPages) {
 		printf("El número de página es mayor al tamaño de la tabla de paginas.\n");
 		ASSERT(false);
 	}
 
 	if (!pageTable[page].valid) {
-		int numNextPagFisicaLibre = machine->bitMapPagMemAdmin->Find();
+
+//		if ((numNextPagFisicaLibre = machine->bitMapPagMemAdmin->Find()) < 0) {
+		numNextPagFisicaLibre = machine->coreMap->Find();
+//		}
+
 		pageTable[page].physicalPage = numNextPagFisicaLibre;
-		machine->bitMapPagMemAdmin->Mark(numNextPagFisicaLibre);
+//		machine->bitMapPagMemAdmin->Mark(numNextPagFisicaLibre);
 		pageTable[page].valid = true;
 		pageTable[page].use = false;
-		pageTable[page].dirty = false;
+		pageTable[page].dirty = true; // Porque el coremap copia una entrada de memoria a disco solo si esta fue modicada.
+									  // Entonces cuando la leemos del archivo ejecutable solo la cargamos en ram y el seteando
+									  // el bit dirty nos aseguramos que si el coremap la saca la copie en disco (independientemente
+									  // de si el micro la modifico o no).
 		pageTable[page].readOnly = false;
 
 		bzero(&(machine->mainMemory[pageTable[page].physicalPage * PageSize]), PageSize);
@@ -310,9 +329,50 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 				}
 			}
 		}
+	} else if (pagetTable[page].physAddrs == NULL_PAGE) { // la entry esta en disco
+		// TODO extraer la pagina de disco y cargarla en la ram
+		numNextPagFisicaLibre = machine->coreMap->Find();
+		pageTable[page].physicalPage = numNextPagFisicaLibre;
+//		machine->bitMapPagMemAdmin->Mark(numNextPagFisicaLibre);
+		pageTable[page].valid = true;
+		pageTable[page].use = false;
+		pageTable[page].dirty = false;
+		pageTable[page].readOnly = false;
+
+		bzero(&(machine->mainMemory[pageTable[page].physicalPage * PageSize]), PageSize);
+
+		ASSERT(readFromSwap(&(machine->mainMemory[pageTable[page].physicalPage * PageSize]), page));
+
 	}
 
 	return &pageTable[page];
+}
+
+
+bool writeToSwap(char*buf,int virtualPage) {
+	int nroFrame;
+	if (pageTable[page].swapPage != NULL_PAGE){
+		nroFrame = pageTable[page].swapPage;
+	} else {
+		nroFrame = swapPagesCounter;
+		swapPagesCounter++;
+	}
+	ASSERT(swapPagesCounter > numPages);
+
+	if (swapFile == NULL) {
+		swapFile = fileSystem->Open(swapFileName);
+	}
+	return (swapFile->WriteAt(buf,PageSize,nroFrame*PageSize) == PageSize);
+
+}
+
+bool readFromSwap(char*buf,int virtualPage) {
+	ASSERT(pageTable[page].swapPage != NULL_PAGE);
+
+	if (swapFile == NULL) {
+		swapFile = fileSystem->Open(swapFileName);
+	}
+	return (swapFile->ReadAt(&(machine->mainMemory[physAddr]),PageSize,pageTable[page].swapPage*PageSize) == PageSize);
 }
 
 void AddrSpace::UpdateEntryAt(int page, TranslationEntry *entry)

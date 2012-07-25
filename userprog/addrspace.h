@@ -18,6 +18,7 @@
 #include "noff.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
+#define NULL_PAGE -1 // Indica que la pagina se encuentra en disco.
 
 class AddrSpace {
   public:
@@ -36,6 +37,7 @@ class AddrSpace {
     void UpdateEntryAt(int page, TranslationEntry *entry);
 
   private:
+
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual 
@@ -43,6 +45,11 @@ class AddrSpace {
     //necesario para el ejercicio 3 de la practica 5
     OpenFile *executable;
     NoffHeader noffH;
+
+    OpenFile *swapFile;
+    int swapPagesCounter;
+    char *swapFileName;
+
 };
 
 #endif // ADDRSPACE_H

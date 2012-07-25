@@ -40,6 +40,7 @@ class TranslationEntry {
 			// page is referenced or modified.
     bool dirty;         // This bit is set by the hardware every time the
 			// page is modified.
+    int swapPage; // El numero de pagina en el disco.
 };
 
 #endif

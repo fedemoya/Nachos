@@ -163,11 +163,6 @@ SpaceId nuestraExec(char *filename) {
 		return 0;
 	}
 
-	space = new AddrSpace(executable);
-#ifndef USE_TLB
-    delete executable;			// close file
-#endif
-
 	if (spaceList == NULL) {
     	spaceList = new List<SpaceData*>;
     }
@@ -175,6 +170,11 @@ SpaceId nuestraExec(char *filename) {
     spaceData = new SpaceData;
 
     newThread = new Thread (filename, true);
+
+    space = new AddrSpace(executable, newThread.getId());
+    #ifndef USE_TLB
+        delete executable;			// close file
+    #endif
 
     spaceData->key = newThread->getId();
     spaceData->thread = newThread;
