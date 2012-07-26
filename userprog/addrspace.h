@@ -22,7 +22,11 @@
 
 class AddrSpace {
   public:
+	#ifdef USE_TLB
     AddrSpace(OpenFile *executable);	// Create an address space,
+    #else
+    AddrSpace(OpenFile *exec, int spaceId);
+    #endif
 					// initializing it with the program
 					// stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space

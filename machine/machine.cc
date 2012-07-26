@@ -76,6 +76,8 @@ Machine::Machine(bool debug)
     pageTable = NULL;
 #endif
 
+	coremap = new CoreMap();	
+
     singleStep = debug;
     CheckEndian();
 }

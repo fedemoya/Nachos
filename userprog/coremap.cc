@@ -1,12 +1,12 @@
 #include "coremap.h"
 void
 CoreMap::CoreMap() {
-	tablaInvertida = malloc(sizeof(struct FrameIPT)*NumPhysPages);
+	tablaInvertida = malloc(sizeof(struct FrameIPT)*NumPhysPages2);
 	#ifndef USE_LRU
 		queuePages = new List<int>;
     #else
-		for(int i;i<NumPhysPages;i++) 
-			for(int j;j<NumPhysPages;j++) 
+		for(int i;i<NumPhysPages2;i++) 
+			for(int j;j<NumPhysPages2;j++) 
 				matrizLRU[i][j] = 0;
     #endif
 }
@@ -34,7 +34,7 @@ int Find(int virtualAddres) {
 		pageFrameSwapear = elegirFrameLRU();
 		#endif
 		Thread* hiloProp = tablaInvertida[nextPhysPage].hilo;
-		hiloProp->space->writeToSwap(&(machine->mainMemory[pageFrameSwapear * PageSize]) ,tablaInvertida[nextPhysPage].virtAddr);
+		hiloProp->space->writeToSwap(&(machine->mainMemory[pageFrameSwapear * PageSize2]) ,tablaInvertida[nextPhysPage].virtAddr);
 	} 
 	
 	FrameIPT nuevoFrame = tablaInvertida[nextPhysPage];
@@ -59,14 +59,14 @@ int Find(int virtualAddres) {
 }
 void 
 CoreMap::setearFilaEnUno(int indFila) {
-	ASSERT(indFila < NumPhysPages);
-	for(int i=0;i<NumPhysPages;i++) 
+	ASSERT(indFila < NumPhysPages2);
+	for(int i=0;i<NumPhysPages2;i++) 
 		matrizLRU[indFila][i] = 0;
 };
 void 
 CoreMap::setearColumnaEnCero(int indCol){
-	ASSERT(indFila < NumPhysPages);
-	for(int i=0;i<NumPhysPages;i++) 
+	ASSERT(indFila < NumPhysPages2);
+	for(int i=0;i<NumPhysPages2;i++) 
 		matrizLRU[i][indCol] = 0;
 };  
 
@@ -75,7 +75,7 @@ int
 CoreMap::elegirFrameLRU() {
 	int minimoValor = 0,nuevoValor=0;
 	int pageLRU=0;
-	for(int i=0;i<NumPhysPages;i++)  {
+	for(int i=0;i<NumPhysPages2;i++)  {
 		nuevoValor = calcularEnteroPosicion(i);
 		if (nuevoValor < minimoValor) {
 			minimoValor = nuevoValor;
@@ -86,9 +86,9 @@ CoreMap::elegirFrameLRU() {
 }
 
 int calcularEnteroPosicion(int indFila) {
-	ASSERT(indFila < NumPhysPages);
+	ASSERT(indFila < NumPhysPages2);
 	int entero = 0;
-	for(int i=0;i<NumPhysPages;i++) 
+	for(int i=0;i<NumPhysPages2;i++) 
 		entero += matrizLRU[indFila][i]*2^i;
 	return i;
 }

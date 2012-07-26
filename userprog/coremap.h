@@ -1,11 +1,19 @@
 #define USE_LRU 1
 
+//~ #include "../machine/machine.h"
+//~ #include "../threads/thread.h"
+#include "list.h"
+//TODO: arreglar esta negrada!
+const int NumPhysPages2 = 32;//32;
+const int PageSize2 = 128;
+class Thread;
+
 typedef struct {
 	Thread* hilo;//dueño de la pagina
 	int virtAddr;//pagina virtual 
 } FrameIPT;//Inverted Page Table Frame
 
-Clase CoreMap {
+class CoreMap {
 	public:
     
     CoreMap();	
@@ -33,7 +41,7 @@ Clase CoreMap {
     #else       
     ///////////////////////
     //para politica LRU
-    int matrizLRU[NumPhysPages][NumPhysPages];//para politica LRU
+    int matrizLRU[NumPhysPages2][NumPhysPages2];//para politica LRU
     void setearFilaEnUno(int indFila);
     void setearColumnaEnCero(int indCol);
     int elegirFrameLRU();

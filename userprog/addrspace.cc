@@ -285,7 +285,7 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 	if (!pageTable[page].valid) {
 
 //		if ((numNextPagFisicaLibre = machine->bitMapPagMemAdmin->Find()) < 0) {
-		numNextPagFisicaLibre = machine->coreMap->Find();
+		numNextPagFisicaLibre = machine->coremap->Find();
 //		}
 
 		pageTable[page].physicalPage = numNextPagFisicaLibre;
@@ -331,7 +331,7 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 		}
 	} else if (pagetTable[page].physAddrs == NULL_PAGE) { // la entry esta en disco
 		// TODO extraer la pagina de disco y cargarla en la ram
-		numNextPagFisicaLibre = machine->coreMap->Find();
+		numNextPagFisicaLibre = machine->coremap->Find();
 		pageTable[page].physicalPage = numNextPagFisicaLibre;
 //		machine->bitMapPagMemAdmin->Mark(numNextPagFisicaLibre);
 		pageTable[page].valid = true;

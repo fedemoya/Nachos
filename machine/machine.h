@@ -27,14 +27,17 @@
 #include "disk.h"
 //--{ smb 26/04/2012
 #include "bitmap.h"
+//#include "coremap.h"
+class CoreMap;
 //--} smb 26/04/2012
+
 // Definitions related to the size, and format of user memory
 
 const int PageSize = SectorSize; 	// set the page size equal to
 					// the disk sector size, for
 					// simplicity
 
-const int NumPhysPages = 128;//32;
+const int NumPhysPages = 32;
 const int MemorySize = NumPhysPages * PageSize;
 const int TLBSize = 16; // 4;			// if there is a TLB, make it small
 
@@ -159,6 +162,7 @@ class Machine {
 				// code and data, while executing
 	//--{ smb 26/04/2012
 	BitMap * bitMapPagMemAdmin;
+	CoreMap *coremap;
 	//--} smb 26/04/2012
 
     int registers[NumTotalRegs]; // CPU registers, for executing user programs
