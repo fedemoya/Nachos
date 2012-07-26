@@ -349,9 +349,30 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 }
 
 
-bool writeToSwap(char*buf,int virtualPage) {
+//~ bool writeToSwap(char*buf,int virtualPage) {
+	//~ int nroFrame;
+	//~ if (pageTable[page].swapPage != NULL_PAGE){
+		//~ nroFrame = pageTable[page].swapPage;
+	//~ } else {
+		//~ nroFrame = swapPagesCounter;
+		//~ swapPagesCounter++;
+	//~ }
+	//~ ASSERT(swapPagesCounter > numPages);
+//~ 
+	//~ if (swapFile == NULL) {
+		//~ swapFile = fileSystem->Open(swapFileName);
+	//~ }
+	//~ return (swapFile->WriteAt(buf,PageSize,nroFrame*PageSize) == PageSize);
+//~ 
+//~ }
+
+//cambiar esta funcion en addrspce
+bool addrspace::writeToSwap(char*buf,int virtualPage) {//la escribe en disco solo si lo necesita (bit de dirty en 1 = page modified)
 	int nroFrame;
-	if (pageTable[page].swapPage != NULL_PAGE){
+	if (pageTable[page].swapPage != NULL_PAGE){//esta en disco
+		if (pageTable[page].dirty == 0) {//no fue modificada, la copia de disco es actual
+			return true;
+		}
 		nroFrame = pageTable[page].swapPage;
 	} else {
 		nroFrame = swapPagesCounter;
@@ -362,9 +383,10 @@ bool writeToSwap(char*buf,int virtualPage) {
 	if (swapFile == NULL) {
 		swapFile = fileSystem->Open(swapFileName);
 	}
+	
 	return (swapFile->WriteAt(buf,PageSize,nroFrame*PageSize) == PageSize);
-
 }
+
 
 bool readFromSwap(char*buf,int virtualPage) {
 	ASSERT(pageTable[page].swapPage != NULL_PAGE);
