@@ -1,6 +1,10 @@
 #include "syscall.h"
 
-#define EOF -1
+
+#define NULL_32 '0'
+#define NULL_64 0
+
+#define EOF '0'
 
 int longitud(char *s);
 int escribirEnConsola(char *s);
@@ -53,9 +57,14 @@ int main(int argc, char **argv) {
 //~ }
 
 int leerArchivo(OpenFileId id, char*buf)  {
+	char *c;
 	int cont=0;
 	Read(buf+cont, 1 , id );
-	while (*(buf+cont) != EOF){
+	//while (*(buf+cont) != EOF){
+	
+	Read(c, 1, id);
+	while (*c != NULL_32 && *c != NULL_64) {		
+	//while (*(buf+cont) != NULL_32 && *(buf+cont) != NULL_64) {
 		cont++;
 		Read(buf+cont, 1 , id );
 		Write(buf+cont, 1 , ConsoleOutput );

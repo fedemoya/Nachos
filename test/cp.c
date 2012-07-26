@@ -68,6 +68,7 @@ int leerArchivo(OpenFileId id, char*buf)  {
 	while (*(buf+cont) != EOF){
 		cont++;
 		Read(buf+cont, 1 , id );
+		if (cont>2) break;
 	}
 	return cont;
 }
