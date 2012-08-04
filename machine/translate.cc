@@ -247,6 +247,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	DEBUG('a', "*** frame %d > %d!\n", pageFrame, NumPhysPages);
 	return BusErrorException;
     }
+    coreMap->setearFrameReferenciado(entry->physicalPage);
     entry->use = true;		// set the use, dirty bits
     if (writing)
 	entry->dirty = true;
