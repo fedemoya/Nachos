@@ -30,7 +30,11 @@ StartProcess(const char *filename)
 	printf("Unable to open file %s\n", filename);
 	return;
     }
-    space = new AddrSpace(executable);    
+    #ifdef USE_TLB
+        space = new AddrSpace(executable, 1);	// Create an address space,
+    #else
+        space = new AddrSpace(executable);    
+    #endif
     currentThread->space = space;
 
 #ifndef USE_TLB

@@ -58,7 +58,7 @@ SwapHeader (NoffHeader *noffH)
 //----------------------------------------------------------------------
 
 #ifdef USE_TLB
-AddrSpace::AddrSpace(OpenFile *exec)
+AddrSpace::AddrSpace(OpenFile *exec, int spaceId)
 {
 	executable = exec;
 	executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
@@ -90,6 +90,10 @@ AddrSpace::AddrSpace(OpenFile *exec)
 		pageTable[i].dirty        = false;
 		pageTable[i].readOnly     = false;
 	}
+	swapFileName = new char[10];
+	sprintf(swapFileName, "SWAP.%d", spaceId);
+	ASSERT(fileSystem->Create(swapFileName, 0));
+	swapPagesCounter = 0;
 }
 #else
 AddrSpace::AddrSpace(OpenFile *exec)
@@ -111,7 +115,8 @@ AddrSpace::AddrSpace(OpenFile *exec)
     size = numPages * PageSize;
 
 	//--{ smb 26/04/2012
-	unsigned int NumPhysPagesLibres =  machine->bitMapPagMemAdmin->NumClear();
+/* TODO No lo estamos necesitando para el swapping
+	unsigned int NumPhysPagesLibres =  coreMap->NumClear();
 //ya no son todas las paginas para un solo proceso
 // ASSERT(numPages <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
@@ -120,6 +125,7 @@ AddrSpace::AddrSpace(OpenFile *exec)
 	DEBUG('a',"num pages %d, NumPhysPagesLibres %d\n",numPages,NumPhysPagesLibres);
 	ASSERT(numPages <= NumPhysPagesLibres);		// check we're not trying
 	//--} smb 26/04/2012
+*/
     DEBUG('a', "Initializing address space, num pages %d, size %d\n",
 					numPages, size);
 // first, set up the translation
@@ -127,10 +133,10 @@ AddrSpace::AddrSpace(OpenFile *exec)
     for (i = 0; i < numPages; i++) {
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 		//--{ smb 26/04/2012
-		int numNextPagFisicaLibre = machine->bitMapPagMemAdmin->Find();
+		int numNextPagFisicaLibre = coreMap->Find(i);
 		//pageTable[i].physicalPage = i;
 		pageTable[i].physicalPage = numNextPagFisicaLibre;
-		machine->bitMapPagMemAdmin->Mark(numNextPagFisicaLibre);
+		//coreMap->Mark(numNextPagFisicaLibre);
 		//--} smb 26/04/2012
 		pageTable[i].valid = true;
 		pageTable[i].use = false;
@@ -197,10 +203,12 @@ AddrSpace::~AddrSpace()
    //--{ smb 26/04/2012
    //limpiamos los marcos que uso y los seteamos en libres
    for (unsigned int i = 0; i < numPages; i++) {
-		machine->bitMapPagMemAdmin->Clear(pageTable[i].physicalPage );
+		coreMap->Clear(pageTable[i].physicalPage );
    } 	
    //--} smb 26/04/2012
    delete pageTable;
+   delete swapFile;
+   delete [] swapFileName;
 }
 
 //----------------------------------------------------------------------
@@ -271,9 +279,9 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 	}
 
 	if (!pageTable[page].valid) {
-		int numNextPagFisicaLibre = machine->bitMapPagMemAdmin->Find();
+		int numNextPagFisicaLibre = coreMap->Find(page);
 		pageTable[page].physicalPage = numNextPagFisicaLibre;
-		machine->bitMapPagMemAdmin->Mark(numNextPagFisicaLibre);
+		//coreMap->Mark(numNextPagFisicaLibre);
 		pageTable[page].valid = true;
 		pageTable[page].use = false;
 		pageTable[page].dirty = false;
@@ -329,3 +337,25 @@ void AddrSpace::UpdateEntryAt(int page, TranslationEntry *entry)
 	pageTable[page].valid = entry->valid;
 	pageTable[page].use = entry->use;
 }
+
+bool AddrSpace::writeToSwap(char*buf,int page) {
+	int nroFrame;
+	if (pageTable[page].swapPage != NULL_PAGE){//esta en disco
+		if (pageTable[page].dirty == 0) {//no fue modificada, la copia de disco es actual
+			return true;
+		}
+		nroFrame = pageTable[page].swapPage;
+	} else {
+		nroFrame = swapPagesCounter;
+		swapPagesCounter++;
+	}
+	ASSERT(swapPagesCounter > numPages);
+
+	if (swapFile == NULL) {
+		swapFile = fileSystem->Open(swapFileName);
+	}
+	return (swapFile->WriteAt(buf,PageSize,nroFrame*PageSize) == PageSize);
+}
+
+
+

@@ -163,10 +163,10 @@ SpaceId nuestraExec(char *filename) {
 		return 0;
 	}
 
-	space = new AddrSpace(executable);
-#ifndef USE_TLB
-    delete executable;			// close file
-#endif
+	//~ space = new AddrSpace(executable);
+//~ #ifndef USE_TLB
+    //~ delete executable;			// close file
+//~ #endif
 
 	if (spaceList == NULL) {
     	spaceList = new List<SpaceData*>;
@@ -175,7 +175,12 @@ SpaceId nuestraExec(char *filename) {
     spaceData = new SpaceData;
 
     newThread = new Thread (filename, true);
-
+    #ifdef USE_TLB
+        space = new AddrSpace(executable, newThread->getId());
+    #else
+        space = new AddrSpace(executable);
+        delete executable;			// close file'
+    #endif
     spaceData->key = newThread->getId();
     spaceData->thread = newThread;
 	spaceList->Append(spaceData);

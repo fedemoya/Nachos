@@ -18,10 +18,15 @@
 #include "noff.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
+#define NULL_PAGE -1 // Indica que la pagina se encuentra en disco.
 
 class AddrSpace {
   public:
-    AddrSpace(OpenFile *executable);	// Create an address space,
+    #ifdef USE_TLB
+        AddrSpace(OpenFile *exec, int spaceId);	// Create an address space,
+    #else
+        AddrSpace(OpenFile *exec);
+    #endif
 					// initializing it with the program
 					// stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space
@@ -34,6 +39,7 @@ class AddrSpace {
 
     TranslationEntry *EntryAt(int page);
     void UpdateEntryAt(int page, TranslationEntry *entry);
+    bool writeToSwap(char*buf,int virtualPage);
 
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation
@@ -43,6 +49,9 @@ class AddrSpace {
     //necesario para el ejercicio 3 de la practica 5
     OpenFile *executable;
     NoffHeader noffH;
+    OpenFile *swapFile;
+    int swapPagesCounter;
+    char *swapFileName;
 };
 
 #endif // ADDRSPACE_H
