@@ -49,7 +49,11 @@ class AddrSpace {
     //necesario para el ejercicio 3 de la practica 5
     OpenFile *executable;
     NoffHeader noffH;
-    OpenFile *swapFile;
+    //TODO: emprolijar!!!
+    //~ #ifdef USE_TLB 
+		OpenFile *swapFile;
+    //~ #else
+    //~ #endif
     int swapPagesCounter;
     char *swapFileName;
 };

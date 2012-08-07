@@ -60,6 +60,7 @@ SwapHeader (NoffHeader *noffH)
 #ifdef USE_TLB
 AddrSpace::AddrSpace(OpenFile *exec, int spaceId)
 {
+	printf(">>>>>>>>>usamos TLB \n");
 	executable = exec;
 	executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
 	unsigned int i, size;
@@ -75,7 +76,7 @@ AddrSpace::AddrSpace(OpenFile *exec, int spaceId)
 						// to leave room for the stack
 	numPages = divRoundUp(size, PageSize);
 
-	ASSERT(numPages <= NumPhysPages);		// check we're not trying
+	//ASSERT(numPages <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
 						// at least until we have
 						// virtual memory
@@ -89,15 +90,18 @@ AddrSpace::AddrSpace(OpenFile *exec, int spaceId)
 		pageTable[i].use          = false;
 		pageTable[i].dirty        = false;
 		pageTable[i].readOnly     = false;
+		pageTable[i].swapPage     = NULL_PAGE;
 	}
 	swapFileName = new char[10];
 	sprintf(swapFileName, "SWAP.%d", spaceId);
+	DEBUG('y', "SwapFile %s \n", swapFileName);
 	ASSERT(fileSystem->Create(swapFileName, 0));
 	swapPagesCounter = 0;
 }
 #else
 AddrSpace::AddrSpace(OpenFile *exec)
 {
+	printf(">>>>>>>>>NO usamos TLB \n");
     NoffHeader noffH;
     unsigned int i, size;
 
@@ -144,6 +148,7 @@ AddrSpace::AddrSpace(OpenFile *exec)
 		pageTable[i].readOnly = false;  // if the code segment was entirely on
 						// a separate page, we could set its
 						// pages to be read-only
+		pageTable[i].swapPage     = NULL_PAGE;						
     }
 
 // zero out the entire address space, to zero the unitialized data segment
@@ -191,6 +196,7 @@ AddrSpace::AddrSpace(OpenFile *exec)
 		}
 //--} smb 26/04/2012
     }
+    DEBUG('a', "SwapFile %s \n", swapFileName);
 }
 #endif
 //----------------------------------------------------------------------
@@ -274,7 +280,7 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 {
 	unsigned int i;
 	if (page > NumPhysPages) {
-		printf("El número de página es mayor al tamaño de la tabla de paginas.\n");
+		printf("El número de página %d es mayor al tamaño de la tabla de paginas %d.\n",page, NumPhysPages);
 		ASSERT(false);
 	}
 
@@ -336,6 +342,7 @@ void AddrSpace::UpdateEntryAt(int page, TranslationEntry *entry)
 	pageTable[page].readOnly = entry->readOnly;
 	pageTable[page].valid = entry->valid;
 	pageTable[page].use = entry->use;
+	pageTable[page].swapPage = entry->swapPage;
 }
 
 bool AddrSpace::writeToSwap(char*buf,int page) {
@@ -349,7 +356,7 @@ bool AddrSpace::writeToSwap(char*buf,int page) {
 		nroFrame = swapPagesCounter;
 		swapPagesCounter++;
 	}
-	ASSERT(swapPagesCounter > numPages);
+	ASSERT(numPages > swapPagesCounter);
 
 	if (swapFile == NULL) {
 		swapFile = fileSystem->Open(swapFileName);

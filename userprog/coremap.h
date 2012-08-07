@@ -12,7 +12,8 @@
 //~ const int NumPhysPages2 = 32;//32;
 //~ const int PageSize2 = 128;
 //~ class Thread;
-#define USE_LRU 1
+
+//#define USE_LRU 1  ==> opcion de compilacion -DUSE_LRU para agregar en el Makefile.common
 
 
 typedef struct {
@@ -28,12 +29,15 @@ class CoreMap {
         int Find(int i);
         void Clear(int page);
         #ifndef USE_LRU
+        
         #else
         ///////////////////////
         //para politica LRU
         void setearFrameReferenciado(int indPage) { 
+			DEBUG('k', "LRU valor referenciado %d \n",indPage);
             this->setearFilaEnUno(indPage);
             this->setearColumnaEnCero(indPage); 
+            this->printMatrizLRU();
         };
         ///////////////////////
         #endif
@@ -54,6 +58,7 @@ class CoreMap {
         void setearColumnaEnCero(int indCol);
         int elegirFrameLRU();
         int calcularEnteroPosicion(int indFila);
+        void printMatrizLRU();
         ///////////////////////
         #endif
 };

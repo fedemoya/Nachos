@@ -1,5 +1,6 @@
 #include "coremap.h"
 #include "system.h"
+#include <math.h>
 
 CoreMap::CoreMap() {
 	tablaInvertida = (FrameIPT*)malloc(sizeof(FrameIPT)*NumPhysPages);
@@ -30,21 +31,31 @@ int CoreMap::Find(int virtualAddres) {
 		#ifndef USE_LRU
 		ASSERT(!queuePages->IsEmpty());
 		pageFrameSwapear = queuePages->Remove();
+		DEBUG('y', "Swapeo FIFO page swap elegida %d \n", pageFrameSwapear);	
 		#else
 		pageFrameSwapear = elegirFrameLRU();
+		DEBUG('y', "Swapeo LRU page swap elegida %d \n", pageFrameSwapear);
+		this->setearFrameReferenciado(pageFrameSwapear);
 		#endif
-		Thread* hiloProp = tablaInvertida[nextPhysPage].hilo;
-		hiloProp->space->writeToSwap(&(machine->mainMemory[pageFrameSwapear * PageSize]) ,tablaInvertida[nextPhysPage].virtAddr);
-	} 
+		Thread* hiloProp = tablaInvertida[pageFrameSwapear].hilo;
+		bool write = hiloProp->space->writeToSwap(&(machine->mainMemory[pageFrameSwapear * PageSize]) ,tablaInvertida[pageFrameSwapear].virtAddr);
+		if (!write)
+			DEBUG('y', "Se cago el write del swap!!!!!!!!!!!!!!!", pageFrameSwapear);	
+		
+		nextPhysPage = pageFrameSwapear;
+		
+	} else {
+		DEBUG('y', "bitmap page libre %d \n", nextPhysPage);	
+	}
 	
-	FrameIPT nuevoFrame = tablaInvertida[nextPhysPage];
+	//~ FrameIPT nuevoFrame = tablaInvertida[nextPhysPage];
 	//~ if (nuevoFrame == NULL) {
 		//~ nuevoFrame = new FrameIPT;
 	//~ } else {
 		//~ delete tablaInvertida[nextPhysPage]	;
 	//~ }
-	nuevoFrame.hilo = currentThread;
-	nuevoFrame.virtAddr = virtualAddres;
+	tablaInvertida[nextPhysPage].hilo = currentThread;
+	tablaInvertida[nextPhysPage].virtAddr = virtualAddres;
 	//~ tablaInvertida[nextPhysPage] = nuevoFrame;
 	
 	#ifndef USE_LRU
@@ -57,11 +68,16 @@ int CoreMap::Find(int virtualAddres) {
 	
 	return nextPhysPage;
 }
+
+ ///////////////////////
+ //para politica FIFO de paginacion
+ 
+ #ifdef USE_LRU
 void 
 CoreMap::setearFilaEnUno(int indFila) {
 	ASSERT(indFila < NumPhysPages);
 	for(int i=0;i<NumPhysPages;i++) 
-		matrizLRU[indFila][i] = 0;
+		matrizLRU[indFila][i] = 1;
 };
 void 
 CoreMap::setearColumnaEnCero(int indCol){
@@ -70,28 +86,39 @@ CoreMap::setearColumnaEnCero(int indCol){
 		matrizLRU[i][indCol] = 0;
 };  
 
+void
+CoreMap::printMatrizLRU() {
+	int nuevoValor;
+	for(int i=0;i<NumPhysPages;i++) { 
+		nuevoValor = calcularEnteroPosicion(i);
+		DEBUG('k', "**>> fila %d -- valor %d \n", i,nuevoValor);
+	}
+}
 
 int 
 CoreMap::elegirFrameLRU() {
-	int minimoValor = 0,nuevoValor=0;
+	int minimoValor;
 	int pageLRU=0;
-	for(int i=0;i<NumPhysPages;i++)  {
-		nuevoValor = calcularEnteroPosicion(i);
-		if (nuevoValor < minimoValor) {
-			minimoValor = nuevoValor;
+	minimoValor = calcularEnteroPosicion(0);
+	for(int i=1;i<NumPhysPages;i++)  {
+		if (calcularEnteroPosicion(i) < minimoValor) 
 			pageLRU=i;
-		}
 	}
+	DEBUG('y', "frame matriz LRU elegido %d (con valor igual a %d) \n", pageLRU,calcularEnteroPosicion(pageLRU));
 	return pageLRU;
 }
 
 int CoreMap::calcularEnteroPosicion(int indFila) {
 	ASSERT(indFila < NumPhysPages);
 	int entero = 0;
-	for(int i=0;i<NumPhysPages;i++) 
-		entero += matrizLRU[indFila][i]*2^i;
+	for(int i=0;i<NumPhysPages;i++) {
+		//entero += matrizLRU[indFila][i]*(int)pow(2,i);
+		int potencia = matrizLRU[indFila][i];
+		entero += (potencia<<i);
+	}
 	return entero;
 }
+#endif
 
 void CoreMap::Clear(int which) {
     if ((which >= 0 && which < NumPhysPages))
