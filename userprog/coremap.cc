@@ -35,7 +35,7 @@ int CoreMap::Find(int virtualAddres) {
 		#else
 		pageFrameSwapear = elegirFrameLRU();
 		DEBUG('y', "Swapeo LRU page swap elegida %d \n", pageFrameSwapear);
-		this->setearFrameReferenciado(pageFrameSwapear);
+		//this->setearFrameReferenciado(pageFrameSwapear);
 		#endif
 		Thread* hiloProp = tablaInvertida[pageFrameSwapear].hilo;
 		bool write = hiloProp->space->writeToSwap(&(machine->mainMemory[pageFrameSwapear * PageSize]) ,tablaInvertida[pageFrameSwapear].virtAddr);
