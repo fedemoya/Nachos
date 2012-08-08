@@ -28,6 +28,7 @@ class CoreMap {
         ~CoreMap();
         int Find(int i);
         void Clear(int page);
+        //~ int buscarFrameVirtualCurrentHilo(int frameNro);
         #ifndef USE_LRU
         
         #else
@@ -53,11 +54,11 @@ class CoreMap {
         #else       
         ///////////////////////
         //para politica LRU
-        int matrizLRU[NumPhysPages][NumPhysPages];//para politica LRU
+        unsigned int matrizLRU[NumPhysPages][NumPhysPages];//para politica LRU
         void setearFilaEnUno(int indFila);
         void setearColumnaEnCero(int indCol);
         int elegirFrameLRU();
-        int calcularEnteroPosicion(int indFila);
+        unsigned int calcularEnteroPosicion(int indFila);
         void printMatrizLRU();
         ///////////////////////
         #endif

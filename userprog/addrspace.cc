@@ -279,7 +279,7 @@ void AddrSpace::RestoreState()
 TranslationEntry *AddrSpace::EntryAt(int page)
 {
 	unsigned int i;
-	if (page > NumPhysPages) {
+	if (page >  numPages) {
 		printf("El número de página %d es mayor al tamaño de la tabla de paginas %d.\n",page, NumPhysPages);
 		ASSERT(false);
 	}
@@ -290,8 +290,13 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 		//coreMap->Mark(numNextPagFisicaLibre);
 		pageTable[page].valid = true;
 		pageTable[page].use = false;
-		pageTable[page].dirty = false;
+		pageTable[page].dirty = true; // Porque el coremap copia una entrada de memoria a disco solo si esta fue modicada.
+// Entonces cuando la leemos del archivo ejecutable solo la cargamos en ram y el seteando
+// el bit dirty nos aseguramos que si el coremap la saca la copie en disco (independientemente
+// de si el micro la modifico o no).
 		pageTable[page].readOnly = false;
+		pageTable[page].inMemory = true;
+		
 
 		bzero(&(machine->mainMemory[pageTable[page].physicalPage * PageSize]), PageSize);
 
@@ -324,6 +329,25 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 				}
 			}
 		}
+	} else if (!pageTable[page].inMemory) {//no esta en memoria
+			ASSERT(pageTable[page].swapPage == NULL_PAGE);
+		
+		
+			// TODO extraer la pagina de disco y cargarla en la ram
+			int numNextPagFisicaLibre = coreMap->Find(page);
+			pageTable[page].physicalPage = numNextPagFisicaLibre;
+			// machine->bitMapPagMemAdmin->Mark(numNextPagFisicaLibre);
+			pageTable[page].valid = true;
+			pageTable[page].use = false;
+			pageTable[page].dirty = false;
+			pageTable[page].readOnly = false;
+			pageTable[page].inMemory = true;
+			
+			//reseteo la RAM
+			bzero(&(machine->mainMemory[pageTable[page].physicalPage * PageSize]), PageSize);
+			//escribo en la RAM
+			ASSERT(readFromSwap(&(machine->mainMemory[pageTable[page].physicalPage * PageSize]), pageTable[page].swapPage));
+		
 	}
 
 	return &pageTable[page];
@@ -361,8 +385,18 @@ bool AddrSpace::writeToSwap(char*buf,int page) {
 	if (swapFile == NULL) {
 		swapFile = fileSystem->Open(swapFileName);
 	}
+	pageTable[page].swapPage = nroFrame;
+	pageTable[page].inMemory = false;
+	
 	return (swapFile->WriteAt(buf,PageSize,nroFrame*PageSize) == PageSize);
 }
 
-
+bool AddrSpace::readFromSwap(char*buf,int ordenEnDisco) {
+	if (swapFile == NULL) {
+		swapFile = fileSystem->Open(swapFileName);
+	}
+	
+	return (swapFile->ReadAt(buf,PageSize,ordenEnDisco*PageSize) == PageSize);
+}
+ 
 

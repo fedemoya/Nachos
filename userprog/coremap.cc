@@ -69,6 +69,14 @@ int CoreMap::Find(int virtualAddres) {
 	return nextPhysPage;
 }
 
+//~ int CoreMap::buscarFrameVirtualCurrentHilo(int frameNro) {
+	//~ for(int i=0;i<nextPhysPage;i++)
+		//~ if (currentThread ==tablaInvertida[i].hilo  
+			//~ && tablaInvertida[i].virtAddr == frameNro)
+			//~ return i;
+	//~ return -1;
+//~ }
+
  ///////////////////////
  //para politica FIFO de paginacion
  
@@ -97,24 +105,26 @@ CoreMap::printMatrizLRU() {
 
 int 
 CoreMap::elegirFrameLRU() {
-	int minimoValor;
+	unsigned int minimoValor;
 	int pageLRU=0;
 	minimoValor = calcularEnteroPosicion(0);
 	for(int i=1;i<NumPhysPages;i++)  {
-		if (calcularEnteroPosicion(i) < minimoValor) 
+		if (calcularEnteroPosicion(i) < minimoValor){ 
 			pageLRU=i;
+			minimoValor = calcularEnteroPosicion(i);
+		}
 	}
 	DEBUG('y', "frame matriz LRU elegido %d (con valor igual a %d) \n", pageLRU,calcularEnteroPosicion(pageLRU));
 	return pageLRU;
 }
 
-int CoreMap::calcularEnteroPosicion(int indFila) {
+unsigned int CoreMap::calcularEnteroPosicion(int indFila) {
 	ASSERT(indFila < NumPhysPages);
-	int entero = 0;
+	unsigned int entero = 0;
 	for(int i=0;i<NumPhysPages;i++) {
-		//entero += matrizLRU[indFila][i]*(int)pow(2,i);
-		int potencia = matrizLRU[indFila][i];
-		entero += (potencia<<i);
+		//~ entero += matrizLRU[indFila][i]*(int)pow(2,i);
+		unsigned int potencia = matrizLRU[indFila][i];
+		entero |= (potencia<<i);
 	}
 	return entero;
 }
