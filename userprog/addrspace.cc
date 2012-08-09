@@ -330,7 +330,9 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 			}
 		}
 	} else if (!pageTable[page].inMemory) {//no esta en memoria
-			ASSERT(pageTable[page].swapPage == NULL_PAGE);
+	
+			//DEBUG('y', "page pedida %d, valor\n",
+			ASSERT(pageTable[page].swapPage != NULL_PAGE);
 		
 		
 			// TODO extraer la pagina de disco y cargarla en la ram
