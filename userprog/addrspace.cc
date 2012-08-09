@@ -91,6 +91,7 @@ AddrSpace::AddrSpace(OpenFile *exec, int spaceId)
 		pageTable[i].dirty        = false;
 		pageTable[i].readOnly     = false;
 		pageTable[i].swapPage     = NULL_PAGE;
+		DEBUG('y', "Page %d con swapPage %d \n", i,pageTable[i].swapPage);
 	}
 	swapFileName = new char[10];
 	sprintf(swapFileName, "SWAP.%d", spaceId);
@@ -296,7 +297,7 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 // de si el micro la modifico o no).
 		pageTable[page].readOnly = false;
 		pageTable[page].inMemory = true;
-		
+		pageTable[page].swapPage = NULL_PAGE;
 
 		bzero(&(machine->mainMemory[pageTable[page].physicalPage * PageSize]), PageSize);
 
@@ -331,23 +332,23 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 		}
 	} else if (!pageTable[page].inMemory) {//no esta en memoria
 	
-			//DEBUG('y', "page pedida %d, valor\n",
-			ASSERT(pageTable[page].swapPage != NULL_PAGE);
+			DEBUG('y', "Pide leer de disco la page %d con orden de disco en %d \n", page,pageTable[page].swapPage);
+			ASSERT(pageTable[page].swapPage != NULL_PAGE); //debe estar si o si en disco (es valida pero no esta en memoria)
 		
 		
 			// TODO extraer la pagina de disco y cargarla en la ram
 			int numNextPagFisicaLibre = coreMap->Find(page);
 			pageTable[page].physicalPage = numNextPagFisicaLibre;
-			// machine->bitMapPagMemAdmin->Mark(numNextPagFisicaLibre);
-			pageTable[page].valid = true;
-			pageTable[page].use = false;
-			pageTable[page].dirty = false;
-			pageTable[page].readOnly = false;
+			//~ pageTable[page].valid = true;
+			//~ pageTable[page].use = false;
+			//~ pageTable[page].dirty = false;
+			//~ pageTable[page].readOnly = false;
 			pageTable[page].inMemory = true;
 			
 			//reseteo la RAM
 			bzero(&(machine->mainMemory[pageTable[page].physicalPage * PageSize]), PageSize);
 			//escribo en la RAM
+			
 			ASSERT(readFromSwap(&(machine->mainMemory[pageTable[page].physicalPage * PageSize]), pageTable[page].swapPage));
 		
 	}
@@ -369,27 +370,32 @@ void AddrSpace::UpdateEntryAt(int page, TranslationEntry *entry)
 	pageTable[page].valid = entry->valid;
 	pageTable[page].use = entry->use;
 	pageTable[page].swapPage = entry->swapPage;
+	pageTable[page].inMemory = entry->inMemory;
 }
 
 bool AddrSpace::writeToSwap(char*buf,int page) {
 	int nroFrame;
+	
 	if (pageTable[page].swapPage != NULL_PAGE){//esta en disco
-		if (pageTable[page].dirty == 0) {//no fue modificada, la copia de disco es actual
+		if (!pageTable[page].dirty) {//no fue modificada, la copia de disco es actual
 			return true;
 		}
 		nroFrame = pageTable[page].swapPage;
 	} else {
-		nroFrame = swapPagesCounter;
-		swapPagesCounter++;
+		//~ DEBUG('y', "Pide escribir en disco page %d con orden de disco en %d \n", page,pageTable[page].swapPage);
+		nroFrame = swapPagesCounter;		
+		swapPagesCounter=swapPagesCounter+1;
 	}
 	ASSERT(numPages > swapPagesCounter);
 
 	if (swapFile == NULL) {
 		swapFile = fileSystem->Open(swapFileName);
 	}
+	
 	pageTable[page].swapPage = nroFrame;
 	pageTable[page].inMemory = false;
-	
+	DEBUG('y', "Pide escribir en disco page %d con orden de disco en %d \n", page,pageTable[page].swapPage);
+	//~ DEBUG('y', "swapPagesCounter %d \n", swapPagesCounter);
 	return (swapFile->WriteAt(buf,PageSize,nroFrame*PageSize) == PageSize);
 }
 

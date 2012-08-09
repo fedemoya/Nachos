@@ -206,7 +206,10 @@ void pageFaultExceptionHandler() {
 	machine->tlb[oldEntryIndex].readOnly = entry->readOnly;
 	machine->tlb[oldEntryIndex].valid = entry->valid;
 	machine->tlb[oldEntryIndex].use = entry->use;
-
+	//preguntar a Fede si esta bien esto!!
+	machine->tlb[oldEntryIndex].swapPage = entry->swapPage;
+	machine->tlb[oldEntryIndex].inMemory = entry->inMemory;
+	
     stats->numErrorTLB++;
 }
 
