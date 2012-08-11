@@ -40,9 +40,11 @@ class TranslationEntry {
 			// page is referenced or modified.
     bool dirty;         // This bit is set by the hardware every time the
 			// page is modified.
-	bool inMemory; // Indica si el frame esta en memoria o no
-	
+
+    //SOLO PARA TLB//
+    bool inMemory; // Indica si el frame esta en memoria o no
     int swapPage; // El numero de pagina en el disco.
+    ///////////////
 };
 
 #endif

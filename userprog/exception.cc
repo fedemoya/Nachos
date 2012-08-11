@@ -187,9 +187,9 @@ void pageFaultExceptionHandler() {
 	// Sacamos de la tlb una entrada de manera aleatoria.
 	int oldEntryIndex = (rand() % TLBSize);
 	oldEntry = &machine->tlb[oldEntryIndex];
-	if (oldEntry->valid && oldEntry->dirty) {
+	//~ if (oldEntry->valid && oldEntry->dirty) {
 		currentThread->space->UpdateEntryAt(oldEntry->virtualPage, oldEntry);
-	}
+	//~ }
 
 
 	// Ponemos en la posición que sacamos anteriormente la nueva entrada.

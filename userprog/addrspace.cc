@@ -90,6 +90,7 @@ AddrSpace::AddrSpace(OpenFile *exec, int spaceId)
 		pageTable[i].use          = false;
 		pageTable[i].dirty        = false;
 		pageTable[i].readOnly     = false;
+        pageTable[i].inMemory     = false;
 		pageTable[i].swapPage     = NULL_PAGE;
 		DEBUG('y', "Page %d con swapPage %d \n", i,pageTable[i].swapPage);
 	}
@@ -284,7 +285,7 @@ TranslationEntry *AddrSpace::EntryAt(int page)
 		printf("El número de página %d es mayor al tamaño de la tabla de paginas %d.\n",page, NumPhysPages);
 		ASSERT(false);
 	}
-
+    //~ DEBUG('y', "Pide la page %d, valida? %d en memoria? %d en disco? %d \n", page,pageTable[page].valid,pageTable[page].inMemory,pageTable[page].swapPage);
 	if (!pageTable[page].valid) {
 		int numNextPagFisicaLibre = coreMap->Find(page);
 		pageTable[page].physicalPage = numNextPagFisicaLibre;
@@ -369,17 +370,17 @@ void AddrSpace::UpdateEntryAt(int page, TranslationEntry *entry)
 	pageTable[page].readOnly = entry->readOnly;
 	pageTable[page].valid = entry->valid;
 	pageTable[page].use = entry->use;
-	pageTable[page].swapPage = entry->swapPage;
-	pageTable[page].inMemory = entry->inMemory;
+	//~ pageTable[page].swapPage = entry->swapPage;
+	//~ pageTable[page].inMemory = entry->inMemory;
 }
 
 bool AddrSpace::writeToSwap(char*buf,int page) {
 	int nroFrame;
 	
 	if (pageTable[page].swapPage != NULL_PAGE){//esta en disco
-		if (!pageTable[page].dirty) {//no fue modificada, la copia de disco es actual
-			return true;
-		}
+		//~ if (!pageTable[page].dirty) {//no fue modificada, la copia de disco es actual
+			//~ return true;
+		//~ }
 		nroFrame = pageTable[page].swapPage;
 	} else {
 		//~ DEBUG('y', "Pide escribir en disco page %d con orden de disco en %d \n", page,pageTable[page].swapPage);
@@ -394,8 +395,9 @@ bool AddrSpace::writeToSwap(char*buf,int page) {
 	
 	pageTable[page].swapPage = nroFrame;
 	pageTable[page].inMemory = false;
-	DEBUG('y', "Pide escribir en disco page %d con orden de disco en %d \n", page,pageTable[page].swapPage);
+	DEBUG('y', "Pide escribir en disco page %d con orden de disco en %d \n\n", page,pageTable[page].swapPage);
 	//~ DEBUG('y', "swapPagesCounter %d \n", swapPagesCounter);
+    stats->numDiskWrites++;
 	return (swapFile->WriteAt(buf,PageSize,nroFrame*PageSize) == PageSize);
 }
 
@@ -403,7 +405,7 @@ bool AddrSpace::readFromSwap(char*buf,int ordenEnDisco) {
 	if (swapFile == NULL) {
 		swapFile = fileSystem->Open(swapFileName);
 	}
-	
+    stats->numDiskReads++;
 	return (swapFile->ReadAt(buf,PageSize,ordenEnDisco*PageSize) == PageSize);
 }
  
