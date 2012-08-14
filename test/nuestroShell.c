@@ -69,13 +69,13 @@ void main()
 		argc= 0;
 		if (ind_linea>longNombreProg) {//puede que no haya argmentos
 			argc = listarArgumentos(linea + longNombreProg);//dejamos afuera el nombre del programa de los argumentos
-			escribirEnConsola("Los argumentos son\n");
+			//~ escribirEnConsola("Los argumentos son\n");
 			indArg=longNombreProg+1;
 			Write(linea + longNombreProg,ind_linea-longNombreProg,ConsoleOutput); 
-			escribirEnConsola("Los argumentos son\n");
+			//~ escribirEnConsola("Los argumentos son\n");
 			for(h=0;h<argc;h++){
-				escribirEnConsola("Vamos uno por uno\n");
-				escribirEnConsola(linea +indArg );
+				//~ escribirEnConsola("Vamos uno por uno\n");
+				//~ escribirEnConsola(linea +indArg );
 				indArg+=longitudString(linea + indArg)+1;
 			}
 		} else {
@@ -94,23 +94,3 @@ void main()
  
 }
 
-//~ int listarArgumentos(char* buf,char** args) {
-	//~ int i = 0;
-	//~ int argc = 0;
-	//~ int nuevoArg = 1;
-	//~ while(buf[i] != '\n'){
-		//~ if (buf[i] == ' ') {
-			//~ buf[i] = '\0'; //no alocamos espacio para los argumentos de args, simplemente,
-						   //~ // lo hacemos apuntar a donde empiezan en buf y pisamos los espacios por '\0'
-			//~ argc++;
-			//~ nuevoArg = 1;
-			//~ i++;
-			//~ continue;
-		//~ } else if (nuevoArg) {
-			//~ args[argc] = buf+i;
-			//~ nuevoArg = 0;
-		//~ }	
-		//~ i++;	
-	//~ }
-	//~ return ++argc;//uno mas por el nombre del programa
-//~ }

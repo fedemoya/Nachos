@@ -1,7 +1,5 @@
 #include "syscall.h"
 
-#define EOF -1
-
 int longitud(char *s);
 int escribirEnConsola(char *s);
 int strcmp(const char* strA, const char* strB);
@@ -14,16 +12,16 @@ int main(int argc, char **argv) {
 	char* fileOrigen,*fileDestino, buffer[100];
 	escribirEnConsola("Estamos en cp\n");
 	if (argc !=2) {
-		escribirEnConsola("Argumentos incorrectos\n");
+		escribirEnConsola("cp: Argumentos incorrectos\n");
 		Exit(0);
 	} else {
 		fileOrigen = argv[0];
 		fileDestino = argv[1];
 		
-		escribirEnConsola("Origen\n");
-		escribirEnConsola(fileOrigen);
-		escribirEnConsola("\nDestino\n");
-		escribirEnConsola(fileDestino);		
+		//~ escribirEnConsola("Origen\n");
+		//~ escribirEnConsola(fileOrigen);
+		//~ escribirEnConsola("\nDestino\n");
+		//~ escribirEnConsola(fileDestino);		
 		
 		openFileIdOrigen = Open(fileOrigen);	
 		
@@ -39,9 +37,7 @@ int main(int argc, char **argv) {
 		}	
 		
 		longFile = leerArchivo(openFileIdOrigen,buffer);
-		escribirEnConsola("En el buffer esta:\n");	
-		escribirEnConsola(buffer);
-		escribirEnConsola("LLego aca\n");
+		
 		if (longFile > 0) {				
 			Create(fileDestino);
 			openFileIdDestino = Open(fileDestino);																				
@@ -61,14 +57,14 @@ int main(int argc, char **argv) {
 	} 
 }
 
-
 int leerArchivo(OpenFileId id, char*buf)  {
+	char *c;
 	int cont=0;
-	Read(buf+cont, 1 , id );
-	while (*(buf+cont) != EOF){
-		cont++;
+	//~ while (Read(buf+cont, 1 , id ) > 0){	no anda esto!!! (se lo consultamos a Fede Bergero y nos dijo que lo iba a investigar!)
+	while (cont<4){	
 		Read(buf+cont, 1 , id );
-		if (cont>2) break;
+		//~ Write(buf+cont, 1 , ConsoleOutput );		
+		cont++;
 	}
 	return cont;
 }

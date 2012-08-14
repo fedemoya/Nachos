@@ -1,11 +1,6 @@
 #include "syscall.h"
 
 
-#define NULL_32 '0'
-#define NULL_64 0
-
-#define EOF '0'
-
 int longitud(char *s);
 int escribirEnConsola(char *s);
 int strCopy(char *src,char *dest);
@@ -38,6 +33,7 @@ int main(int argc, char **argv) {
 			}
 		}
 	
+		escribirEnConsola("Salida de cat\n");
 		escribirEnConsola(bufferSalida);
 		escribirEnConsola(buferError);
 		escribirEnConsola("\n");
@@ -45,29 +41,15 @@ int main(int argc, char **argv) {
 	} 
 }
 
-//~ int leerArchivo(OpenFileId id, char*buf)  {
-	//~ int cont=0, tamanio;
-	//~ tamanio = LongFile(id);  llamada a sistema que falta implementar!
-	//~ tamanio = 3;
-	//~ while(cont< tamanio){
-		//~ Read(buf+cont, 1 , id );
-		//~ cont++;
-	//~ }
-	//~ return cont;
-//~ }
 
 int leerArchivo(OpenFileId id, char*buf)  {
 	char *c;
 	int cont=0;
-	Read(buf+cont, 1 , id );
-	//while (*(buf+cont) != EOF){
-	
-	Read(c, 1, id);
-	while (*c != NULL_32 && *c != NULL_64) {		
-	//while (*(buf+cont) != NULL_32 && *(buf+cont) != NULL_64) {
-		cont++;
+	//~ while (Read(buf+cont, 1 , id ) > 0){	no anda esto!!! (se lo consultamos a Fede Bergero y nos dijo que lo iba a investigar!)
+	while (cont<4){	
 		Read(buf+cont, 1 , id );
-		Write(buf+cont, 1 , ConsoleOutput );
+		//~ Write(buf+cont, 1 , ConsoleOutput );		
+		cont++;
 	}
 	return cont;
 }
